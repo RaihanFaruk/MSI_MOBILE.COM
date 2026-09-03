@@ -13,7 +13,7 @@ import {
   Loader2,
   Image as ImageIcon,
 } from "lucide-react";
-import { DbCategory, DbProduct } from "@/types";
+import { DbCategory } from "@/types";
 
 export default function AdminNewProductPage() {
   const router = useRouter();
