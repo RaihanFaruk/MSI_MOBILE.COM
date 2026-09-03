@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Flame } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/common/ProductCard";
 import { ProductCardSkeleton } from "@/components/home/skeletons/HomeSkeletons";
@@ -43,7 +43,7 @@ export const TrendingNow: React.FC = () => {
               reviewsCount: p.reviews_count || 100,
               specs: p.specs || undefined,
               inStock: (p.stock || 0) > 0,
-              badge: { text: "TRENDING", type: "hot" },
+              badge: { text: "MOST COVETED", type: "hot" },
               description: p.description,
             };
           });
@@ -63,48 +63,42 @@ export const TrendingNow: React.FC = () => {
   }, []);
 
   return (
-    <section id="trending" className="py-8 sm:py-12 bg-bg-light border-b border-slate-200/60">
+    <section id="trending" className="py-12 sm:py-16 bg-[#FAF9F6] border-b border-neutral-200/60">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-rose-100/80 text-rose-600">
-              <Flame className="w-5 h-5 fill-rose-600" />
+        {/* Luxury Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
+          <div>
+            <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.22em] block mb-1">
+              Acclaimed & Desired
             </span>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
-                  Trending Now 🔥
-                </h2>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Most viewed & ordered devices in Bangladesh this week
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif text-neutral-950 tracking-tight">
+              Trending <span className="italic font-serif">Masterpieces</span>
+            </h2>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mt-2" />
           </div>
 
           <Link
             href="/products?sort=popular"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
+            className="group hidden sm:inline-flex items-center gap-2 text-xs font-bold text-neutral-900 hover:text-gold-600 uppercase tracking-wider transition-colors"
           >
-            <span>View All</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>View All Coveted</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
 
         {/* Product Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4].map((i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+          <div className="py-12 text-center text-neutral-400 text-xs font-medium">
             No trending products found.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {products.map((product) => (
               <ProductCard
                 key={product.id}

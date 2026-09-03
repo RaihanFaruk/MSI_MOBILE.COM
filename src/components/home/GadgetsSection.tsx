@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Headphones, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/common/ProductCard";
 import { ProductCardSkeleton } from "@/components/home/skeletons/HomeSkeletons";
@@ -45,7 +45,7 @@ export const GadgetsSection: React.FC = () => {
               reviewsCount: p.reviews_count || 35,
               specs: p.specs || undefined,
               inStock: (p.stock || 0) > 0,
-              badge: p.is_featured ? { text: "POPULAR", type: "hot" } : undefined,
+              badge: p.is_featured ? { text: "SIGNATURE", type: "hot" } : undefined,
               description: p.description,
             };
           });
@@ -65,46 +65,42 @@ export const GadgetsSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="gadgets" className="py-8 sm:py-12 bg-white border-b border-slate-100">
+    <section id="gadgets" className="py-12 sm:py-16 bg-white border-b border-neutral-200/60">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-purple-100/80 text-purple-600">
-              <Headphones className="w-5 h-5" />
+        {/* Luxury Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
+          <div>
+            <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.22em] block mb-1">
+              Acoustic & Wearable Tech
             </span>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
-                Gadgets & Accessories
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Premium audio, fast chargers, power banks and lifestyle gear
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif text-neutral-950 tracking-tight">
+              Curated Gadgets & <span className="italic font-serif">Horology</span>
+            </h2>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mt-2" />
           </div>
 
           <Link
             href="/products?category=gadgets"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
+            className="group hidden sm:inline-flex items-center gap-2 text-xs font-bold text-neutral-900 hover:text-gold-600 uppercase tracking-wider transition-colors"
           >
-            <span>View All</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>All Gadgets</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
 
         {/* Product Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4].map((i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : gadgets.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+          <div className="py-12 text-center text-neutral-400 text-xs font-medium">
             No gadgets available at the moment.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {gadgets.map((product) => (
               <ProductCard
                 key={product.id}

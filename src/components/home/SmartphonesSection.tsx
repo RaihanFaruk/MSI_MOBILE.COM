@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Smartphone, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/common/ProductCard";
 import { ProductCardSkeleton } from "@/components/home/skeletons/HomeSkeletons";
@@ -16,9 +16,9 @@ export const SmartphonesSection: React.FC = () => {
   const { addToCart, toggleWishlist, isInWishlist, setQuickViewProduct } = useStore();
 
   const TABS = [
-    { id: "all", label: "All" },
-    { id: "samsung", label: "Samsung" },
-    { id: "iphone", label: "Apple" },
+    { id: "all", label: "All Flagships" },
+    { id: "iphone", label: "Apple iPhone" },
+    { id: "samsung", label: "Samsung Galaxy" },
     { id: "xiaomi", label: "Xiaomi" },
     { id: "oneplus", label: "OnePlus" },
   ];
@@ -84,34 +84,30 @@ export const SmartphonesSection: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <section id="smartphones" className="py-8 sm:py-12 bg-white border-b border-slate-100">
+    <section id="smartphones" className="py-12 sm:py-16 bg-white border-b border-neutral-200/60">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Section Header with Filter Tabs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-blue-100/80 text-brand-primary">
-              <Smartphone className="w-5 h-5" />
+        {/* Luxury Section Header with Filter Tabs */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-10">
+          <div>
+            <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.22em] block mb-1">
+              Titanium & Flagships
             </span>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
-                Latest Smartphones
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Official global & TRCS verified devices with BTRC approval
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif text-neutral-950 tracking-tight">
+              Haute Mobile <span className="italic font-serif">Smartphones</span>
+            </h2>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mt-2" />
           </div>
 
           {/* Filter Tab Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap active:scale-95 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all whitespace-nowrap active:scale-95 cursor-pointer ${
                   activeTab === tab.id
-                    ? "bg-brand-primary text-white shadow-md shadow-blue-500/20"
-                    : "bg-slate-100/80 hover:bg-slate-200/80 text-slate-600"
+                    ? "bg-obsidian-950 text-gold-400 border border-gold-500/40 shadow-md shadow-black/10"
+                    : "bg-[#FAF9F6] hover:bg-neutral-200/70 text-neutral-600 border border-neutral-200/80"
                 }`}
               >
                 {tab.label}
@@ -122,17 +118,17 @@ export const SmartphonesSection: React.FC = () => {
 
         {/* Product Cards Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4].map((i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs font-semibold">
-            No smartphones available in this category.
+          <div className="py-12 text-center text-neutral-400 text-xs font-medium">
+            No smartphones available in this selection.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -155,14 +151,14 @@ export const SmartphonesSection: React.FC = () => {
           </div>
         )}
 
-        {/* Bottom Link */}
-        <div className="mt-8 text-center">
+        {/* Bottom Section Link */}
+        <div className="mt-8 text-center sm:hidden">
           <Link
             href="/products?category=smartphones"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark bg-blue-50 hover:bg-blue-100/80 px-6 py-2.5 rounded-xl transition-all"
+            className="inline-flex items-center gap-2 text-xs font-bold text-neutral-900 border border-neutral-300 px-5 py-2.5 rounded-xl uppercase tracking-wider"
           >
-            <span>Explore All Smartphones</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>All Smartphones</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

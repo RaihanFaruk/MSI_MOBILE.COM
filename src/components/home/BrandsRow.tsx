@@ -2,38 +2,36 @@
 
 import React from "react";
 import Link from "next/link";
-import { Award } from "lucide-react";
+import { Crown } from "lucide-react";
 
 export const BRANDS_LIST = [
   { name: "Apple", logo: "🍎" },
   { name: "Samsung", logo: "📱" },
+  { name: "Sony", logo: "🎧" },
+  { name: "MSI", logo: "💻" },
+  { name: "ASUS ROG", logo: "🎮" },
   { name: "Xiaomi", logo: "⚡" },
   { name: "OnePlus", logo: "🔴" },
-  { name: "Realme", logo: "🟡" },
-  { name: "OPPO", logo: "🟢" },
-  { name: "Vivo", logo: "🔵" },
-  { name: "Sony", logo: "🎧" },
+  { name: "Lenovo Legion", logo: "⚡" },
   { name: "JBL", logo: "🔊" },
   { name: "Anker", logo: "🔋" },
   { name: "Baseus", logo: "🔌" },
-  { name: "MSI", logo: "💻" },
-  { name: "ASUS", logo: "🎮" },
-  { name: "Lenovo", logo: "⚡" },
+  { name: "Realme", logo: "🟡" },
 ];
 
 export const BrandsRow: React.FC = () => {
   return (
-    <section className="py-6 sm:py-8 bg-white border-b border-slate-100">
+    <section className="py-8 sm:py-10 bg-white border-b border-neutral-200/60">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-brand-primary" />
-            <h2 className="text-lg sm:text-xl font-extrabold text-navy-dark tracking-tight">
-              Popular Brands
+            <Crown className="w-4 h-4 text-gold-600" />
+            <h2 className="text-base sm:text-lg font-serif text-neutral-900 tracking-tight">
+              Authorized <span className="italic font-serif">Brand Maisons</span>
             </h2>
           </div>
-          <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-            Official Authorized Brand Partners in Bangladesh
+          <span className="text-xs text-neutral-400 font-light hidden sm:inline">
+            Official Authorized Partners & Importers in Bangladesh
           </span>
         </div>
 
@@ -43,10 +41,10 @@ export const BrandsRow: React.FC = () => {
             <Link
               key={index}
               href={`/products?brand=${encodeURIComponent(brand.name.toUpperCase())}`}
-              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-slate-50 hover:bg-blue-50/80 border border-slate-200/80 hover:border-blue-300 text-slate-700 hover:text-brand-primary text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 shadow-2xs hover:shadow-sm shrink-0 active:scale-95"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FAF9F6] hover:bg-obsidian-950 border border-neutral-200/80 hover:border-gold-500/50 text-neutral-800 hover:text-gold-400 text-xs sm:text-sm font-semibold tracking-wide whitespace-nowrap transition-all duration-300 shadow-2xs hover:shadow-md shrink-0 active:scale-95 group"
             >
-              <span>{brand.logo}</span>
-              <span>{brand.name}</span>
+              <span className="text-base">{brand.logo}</span>
+              <span className="group-hover:text-gold-300 transition-colors">{brand.name}</span>
             </Link>
           ))}
         </div>
