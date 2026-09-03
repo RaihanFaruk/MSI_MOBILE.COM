@@ -96,16 +96,30 @@ export default function AdminOrdersPage() {
 
     setStatusLoading(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({
+      // 1. Get current admin session token
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // 2. Call server-side Admin API route with Bearer token
+      const res = await fetch(`/api/admin/orders/${editStatusOrder.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({
           status: newStatus,
           payment_status: newPaymentStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", editStatusOrder.id);
+          tracking_note: `Fulfillment status changed to ${newStatus} (${newPaymentStatus}) by Administrator`,
+        }),
+      });
 
-      if (error) throw error;
+      const resData = await res.json();
+
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.message || "Failed to update order status via admin API.");
+      }
 
       showToast(`Order #${editStatusOrder.id} status updated to ${newStatus}.`);
       setOrders((prev) =>

@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { formatBDT } from "@/utils/formatters";
 import {
   Star,
-  Heart,
   ShoppingCart,
   Zap,
   ShieldCheck,
@@ -24,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { DbProduct, Product, DbProductVariation, DbReview } from "@/types";
+import { ProductImageGallery } from "@/components/products/ProductImageGallery";
 
 interface Props {
   product: DbProduct;
@@ -86,9 +86,6 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
     ? product.images
     : ["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"];
 
-  const [activeImage, setActiveImage] = useState(
-    imagesList[0]
-  );
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "reviews">("desc");
   const [copiedLink, setCopiedLink] = useState(false);
@@ -149,7 +146,7 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
     name: `${product.name} ${selectedColor !== "Standard" ? `(${selectedColor})` : ""} ${selectedStorage !== "Standard" ? selectedStorage : ""}`.trim(),
     brand: product.brand,
     category: product.category || "Smartphones",
-    image: activeImage,
+    image: imagesList[0],
     price: currentPrice,
     originalPrice: currentDiscountPrice,
     rating: product.rating ? Number(product.rating) : 5,
@@ -213,57 +210,15 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
 
         {/* Product Overview: Gallery + Options Box */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-          {/* Gallery (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* Main Active Image with Zoom Frame */}
-            <div className="relative w-full h-80 sm:h-96 md:h-[420px] bg-white rounded-3xl border border-slate-200/90 flex items-center justify-center p-6 shadow-xs overflow-hidden group">
-              <Image
-                src={activeImage}
-                alt={product.name}
-                fill
-                priority
-                className="object-contain p-6 group-hover:scale-105 transition-transform duration-300"
-              />
-
-              {/* Wishlist Floating Button */}
-              <button
-                onClick={() => toggleWishlist(String(product.id))}
-                className="absolute top-4 right-4 p-2.5 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200 shadow-sm hover:scale-110 transition-all"
-                title="Toggle Wishlist"
-              >
-                <Heart
-                  className={`w-5 h-5 ${
-                    isWishlisted ? "fill-rose-600 text-rose-600" : "text-slate-400 hover:text-rose-500"
-                  }`}
-                />
-              </button>
-
-              {/* Out of Stock Ribbon */}
-              {isOutOfStock && (
-                <div className="absolute top-4 left-4 bg-rose-600 text-white font-extrabold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
-                  Out of Stock
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnails Row */}
-            {imagesList.length > 1 && (
-              <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                {imagesList.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImage(img)}
-                    className={`relative w-18 h-18 rounded-xl bg-white border-2 p-1 shrink-0 overflow-hidden transition-all ${
-                      activeImage === img
-                        ? "border-brand-primary shadow-sm"
-                        : "border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image src={img} alt={`Thumb ${idx}`} fill className="object-contain p-1" />
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Gallery with Magnifier Lens & Mobile Pinch-to-Zoom Lightbox (5 cols) */}
+          <div className="lg:col-span-5">
+            <ProductImageGallery
+              images={imagesList}
+              productName={product.name}
+              isWishlisted={isWishlisted}
+              onToggleWishlist={() => toggleWishlist(String(product.id))}
+              isOutOfStock={isOutOfStock}
+            />
           </div>
 
           {/* Product Purchase Details (7 cols) */}
