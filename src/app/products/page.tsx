@@ -75,11 +75,11 @@ function ProductsCatalogContent() {
 
   const itemsPerPage = 12;
 
-  // Debounce Search input
+  // Debounce Search input (300ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 400);
+    }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -149,10 +149,16 @@ function ProductsCatalogContent() {
           query = query.gte("rating", Number(selectedRating));
         }
 
-        // Search Query
-        if (debouncedSearch.trim()) {
-          const q = debouncedSearch.trim();
-          query = query.or(`name.ilike.%${q}%,brand.ilike.%${q}%,specs.ilike.%${q}%,description.ilike.%${q}%`);
+        // High-Precision Search Query Filter
+        const cleanQuery = debouncedSearch.trim();
+        if (cleanQuery) {
+          if (cleanQuery.length === 1) {
+            // Single character: Strictly match prefix of product name or brand
+            query = query.or(`name.ilike.${cleanQuery}%,brand.ilike.${cleanQuery}%`);
+          } else {
+            // 2+ characters: Target name, brand and specs, excluding noisy description blob
+            query = query.or(`name.ilike.%${cleanQuery}%,brand.ilike.%${cleanQuery}%,specs.ilike.%${cleanQuery}%`);
+          }
         }
 
         // Sorting
@@ -197,6 +203,42 @@ function ProductsCatalogContent() {
               description: p.description,
             };
           });
+
+          // Relevance Scoring: Prioritize Product Name matches when searching under default sort
+          if (cleanQuery && sortBy === "newest") {
+            const qLower = cleanQuery.toLowerCase();
+            mapped.sort((a, b) => {
+              const getScore = (item: Product) => {
+                const nameLower = (item.name || "").toLowerCase();
+                const brandLower = (item.brand || "").toLowerCase();
+                const specsLower = (item.specs || "").toLowerCase();
+
+                // Exact full name match
+                if (nameLower === qLower) return 100;
+                // Name starts with query (e.g. "Sam" -> "Samsung Galaxy S24 Ultra")
+                if (nameLower.startsWith(qLower)) return 80;
+                // Any word in name starts with query (e.g. "S24" -> "Samsung Galaxy S24")
+                if (nameLower.split(/\s+/).some((w) => w.startsWith(qLower))) return 60;
+                // Name contains query
+                if (nameLower.includes(qLower)) return 50;
+                // Brand starts with or equals query
+                if (brandLower.startsWith(qLower)) return 40;
+                // Brand contains query
+                if (brandLower.includes(qLower)) return 20;
+                // Specs contains query
+                if (specsLower.includes(qLower)) return 10;
+                return 0;
+              };
+
+              const scoreA = getScore(a);
+              const scoreB = getScore(b);
+              if (scoreB !== scoreA) {
+                return scoreB - scoreA;
+              }
+              return Number(a.id) - Number(b.id);
+            });
+          }
+
           setProducts(mapped);
           setTotalCount(count || mapped.length);
         } else {

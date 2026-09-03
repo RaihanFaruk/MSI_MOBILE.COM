@@ -1,10 +1,14 @@
 "use client";
 
 import React from "react";
-import { MapPin, Phone, Clock } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Phone, Clock, User } from "lucide-react";
 import { FacebookIcon, InstagramIcon, YoutubeIcon } from "@/components/common/SocialIcons";
+import { useAuth } from "@/lib/auth-context";
 
 export const TopBar: React.FC = () => {
+  const { user, profile } = useAuth();
+
   return (
     <>
       {/* Tier 1: Desktop / Laptop Top Utility Bar */}
@@ -63,10 +67,17 @@ export const TopBar: React.FC = () => {
           <MapPin className="w-3 h-3 text-brand-accent" />
           <span>Dhaka, BD</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Phone className="w-3 h-3 text-emerald-400" />
-          <span>Hotline: <strong className="text-white">+880 1999-MSIMOB</strong></span>
-        </div>
+        {user ? (
+          <Link href="/account" className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-bold truncate max-w-[180px]">
+            <User className="w-3 h-3 text-blue-400" />
+            <span>Hi, {profile?.full_name?.split(" ")[0] || user.email?.split("@")[0]}</span>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Phone className="w-3 h-3 text-emerald-400" />
+            <span>Hotline: <strong className="text-white">+880 1999-MSIMOB</strong></span>
+          </div>
+        )}
       </div>
     </>
   );

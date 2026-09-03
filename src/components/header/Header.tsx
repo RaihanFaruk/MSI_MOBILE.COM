@@ -213,6 +213,27 @@ export const Header: React.FC = () => {
             </Link>
           )}
 
+          {/* Mobile User Icon / Indicator (Mobile & Tablet) */}
+          {user ? (
+            <Link
+              href="/account"
+              aria-label="My Account"
+              title={`Logged in as ${profile?.full_name || user.email}`}
+              className="lg:hidden flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-100 text-brand-primary font-extrabold text-xs border border-blue-200 shadow-2xs active:scale-95 transition-all"
+            >
+              {profile?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              aria-label="Sign In"
+              title="Sign In"
+              className="lg:hidden p-2 text-slate-700 hover:text-brand-primary rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <User className="w-5 h-5 sm:w-6 sm:h-6" />
+            </Link>
+          )}
+
           {/* Wishlist Icon Link */}
           <Link
             href="/wishlist"

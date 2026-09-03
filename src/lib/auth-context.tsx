@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { User, Session, AuthError, UserResponse } from "@supabase/supabase-js";
+import { User, Session, AuthError, UserResponse, AuthTokenResponsePassword } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { UserProfile } from "@/types";
 
@@ -11,7 +11,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null; data: AuthTokenResponsePassword["data"] | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null; data: UserResponse["data"] | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -66,24 +66,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      if (currentSession?.user) {
-        fetchProfile(
-          currentSession.user.id,
-          currentSession.user.email,
-          currentSession.user.user_metadata?.full_name
-        ).finally(() => setLoading(false));
-      } else {
-        setProfile(null);
-        setLoading(false);
+    let isMounted = true;
+
+    async function initSession() {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (currentSession?.user) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await fetchProfile(
+            currentSession.user.id,
+            currentSession.user.email,
+            currentSession.user.user_metadata?.full_name
+          );
+        } else {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        }
+      } catch (err) {
+        console.error("Session restore error:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    });
+    }
+
+    initSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (!isMounted) return;
+
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
@@ -99,22 +117,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
 
   const signIn = async (email: string, password: string) => {
-    const res = await supabase.auth.signInWithPassword({ email, password });
-    return { error: res.error };
+    const res = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (!res.error && res.data.session) {
+      setSession(res.data.session);
+      setUser(res.data.user);
+      if (res.data.user) {
+        await fetchProfile(
+          res.data.user.id,
+          res.data.user.email,
+          res.data.user.user_metadata?.full_name
+        );
+      }
+    }
+    return { error: res.error, data: res.data };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const res = await supabase.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
         data: {
-          full_name: fullName,
+          full_name: fullName.trim(),
         },
       },
     });
@@ -123,12 +153,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await supabase.from("profiles").upsert({
           id: res.data.user.id,
-          email: email,
-          full_name: fullName,
+          email: email.trim(),
+          full_name: fullName.trim(),
           role: "customer",
         });
       } catch {
         // Fallback for profile creation
+      }
+
+      if (res.data.session) {
+        setSession(res.data.session);
+        setUser(res.data.user);
+        await fetchProfile(res.data.user.id, email.trim(), fullName.trim());
       }
     }
 

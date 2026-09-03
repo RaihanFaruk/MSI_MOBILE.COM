@@ -126,11 +126,50 @@ export const MobileDrawer: React.FC = () => {
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+            className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* User Status Bar in Drawer */}
+        {user ? (
+          <div className="bg-slate-900 px-4 py-3 border-t border-slate-800 flex items-center justify-between">
+            <Link
+              href="/account"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity"
+            >
+              <div className="w-8 h-8 rounded-full bg-brand-primary text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-sm">
+                {profile?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">{profile?.full_name || "My Account"}</p>
+                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+              </div>
+            </Link>
+            <button
+              onClick={() => {
+                signOut();
+                setIsMobileMenuOpen(false);
+              }}
+              className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 shrink-0 ml-2 cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <div className="bg-slate-900 px-4 py-2.5 border-t border-slate-800 flex items-center justify-between text-xs">
+            <span className="text-slate-400 text-[11px]">Welcome to MSI Mobile</span>
+            <Link
+              href="/login"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="font-bold text-blue-400 hover:text-blue-300"
+            >
+              Sign In →
+            </Link>
+          </div>
+        )}
 
         {/* Categories & Links */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">

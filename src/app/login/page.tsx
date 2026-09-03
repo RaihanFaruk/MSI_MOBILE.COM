@@ -11,7 +11,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTarget = searchParams?.get("redirect") || "/account";
-  const { user } = useAuth();
+  const { user, signIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,10 +32,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const { data, error } = await signIn(email.trim(), password);
 
       if (error) {
         setErrorMsg(error.message);
@@ -43,7 +40,7 @@ function LoginForm() {
         return;
       }
 
-      if (data.user) {
+      if (data?.user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
