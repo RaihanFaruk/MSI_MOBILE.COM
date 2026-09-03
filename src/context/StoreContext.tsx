@@ -47,6 +47,7 @@ interface StoreContextType {
   applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
   removeCoupon: () => void;
   toggleWishlist: (productId: string) => void;
+  clearWishlist: () => void;
   isInWishlist: (productId: string) => boolean;
   setIsCartOpen: (open: boolean) => void;
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -276,6 +277,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const clearWishlist = () => {
+    setWishlist([]);
+    showToast("Wishlist Cleared", "All items have been removed from your wishlist.", "info");
+  };
+
   const isInWishlist = (productId: string) => {
     return wishlist.includes(productId);
   };
@@ -285,6 +291,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       value={{
         cart,
         wishlist,
+        clearWishlist,
         appliedCoupon,
         isCartOpen,
         isMobileMenuOpen,

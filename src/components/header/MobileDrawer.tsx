@@ -9,6 +9,7 @@ import {
   X,
   User,
   Package,
+  Heart,
   Phone,
   Flame,
   ShieldCheck,
@@ -70,7 +71,8 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export const MobileDrawer: React.FC = () => {
-  const { isMobileMenuOpen, setIsMobileMenuOpen } = useStore();
+  const { isMobileMenuOpen, setIsMobileMenuOpen, wishlist } =
+    useStore();
   const { user, profile, signOut } = useAuth();
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
 
@@ -199,6 +201,14 @@ export const MobileDrawer: React.FC = () => {
                 >
                   <Package className="w-4 h-4 text-slate-500" />
                   <span>Order History</span>
+                </Link>
+                <Link
+                  href="/wishlist"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-rose-600"
+                >
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span>My Wishlist ({wishlist.length})</span>
                 </Link>
                 <button
                   onClick={() => {

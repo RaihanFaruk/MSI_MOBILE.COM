@@ -74,11 +74,8 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Validate real integer IDs for all items in cart
-    const invalidItems = cart.filter((item) => {
-      const pId = Number(item.product.id);
-      return isNaN(pId) || pId <= 0;
-    });
+    // Validate real IDs for all items in cart (supports UUID and numeric IDs)
+    const invalidItems = cart.filter((item) => !item.product?.id || String(item.product.id).trim() === "");
 
     if (invalidItems.length > 0) {
       setErrorMessage("One or more items in your cart has an invalid product identifier. Please remove and re-add the item from the catalog.");
@@ -86,13 +83,13 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Format items payload with real integer product_id and variation_id
+    // Format items payload (supports UUID and numeric IDs)
     const orderItemsPayload = cart.map((item) => {
-      const pId = Number(item.product.id);
-      const vId = item.selectedVariationId ? Number(item.selectedVariationId) : null;
+      const pId = String(item.product.id);
+      const vId = item.selectedVariationId ? String(item.selectedVariationId) : null;
       return {
         product_id: pId,
-        variation_id: vId && !isNaN(vId) && vId > 0 ? vId : null,
+        variation_id: vId && vId !== "null" && vId !== "std" ? vId : null,
         quantity: item.quantity,
         client_unit_price: item.product.price,
       };

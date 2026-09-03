@@ -18,6 +18,7 @@ import {
   Loader2,
   ChevronRight,
   ShieldCheck,
+  Tag,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Categories", href: "/admin/categories", icon: Layers },
+    { label: "Coupons", href: "/admin/coupons", icon: Tag },
     { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { label: "Users", href: "/admin/users", icon: Users },
   ];

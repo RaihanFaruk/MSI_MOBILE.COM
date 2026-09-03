@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { DbProduct, Product } from "@/types";
+import { ProductGridSkeleton } from "@/components/common/Skeleton";
 
 const BRANDS = [
   { name: "APPLE" },
@@ -536,10 +537,7 @@ function ProductsCatalogContent() {
           {/* Right Product Grid Column */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
-                <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
-                <span className="text-xs font-semibold">Filtering products from database...</span>
-              </div>
+              <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-4">
                 <Package className="w-12 h-12 text-slate-300 mx-auto" />

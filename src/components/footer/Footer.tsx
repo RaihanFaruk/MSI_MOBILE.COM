@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   MapPin,
   Phone,
@@ -106,29 +107,34 @@ export const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm text-slate-400">
               <li>
-                <a href="#track-order" className="hover:text-blue-400 transition-colors">
+                <Link href="/account/orders" className="hover:text-blue-400 transition-colors">
                   Track Your Order
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#returns" className="hover:text-blue-400 transition-colors">
+                <Link href="/returns" className="hover:text-blue-400 transition-colors">
                   Returns & Replacements Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#warranty" className="hover:text-blue-400 transition-colors">
+                <Link href="/returns" className="hover:text-blue-400 transition-colors">
                   Official Warranty Claim Info
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#privacy" className="hover:text-blue-400 transition-colors">
-                  Privacy Policy & Terms
-                </a>
+                <Link href="/privacy" className="hover:text-blue-400 transition-colors">
+                  Privacy Policy
+                </Link>
               </li>
               <li>
-                <a href="#shipping" className="hover:text-blue-400 transition-colors">
+                <Link href="/terms" className="hover:text-blue-400 transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link href="/shipping" className="hover:text-blue-400 transition-colors">
                   Shipping & Delivery Times
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

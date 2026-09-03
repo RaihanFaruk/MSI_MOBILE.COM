@@ -27,7 +27,6 @@ export const Header: React.FC = () => {
     setIsMobileMenuOpen,
     searchQuery,
     setSearchQuery,
-    showToast,
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -169,6 +168,13 @@ export const Header: React.FC = () => {
                   <span>My Orders</span>
                 </Link>
 
+                <Link
+                  href="/wishlist"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-rose-600 transition-colors"
+                >
+                  <span>My Wishlist ({wishlist.length})</span>
+                </Link>
+
                 {profile?.role === "admin" && (
                   <Link
                     href="/admin"
@@ -201,9 +207,9 @@ export const Header: React.FC = () => {
             </Link>
           )}
 
-          {/* Wishlist Icon */}
-          <button
-            onClick={() => showToast("Wishlist", `You have ${wishlist.length} items in wishlist`, "info")}
+          {/* Wishlist Icon Link */}
+          <Link
+            href="/wishlist"
             aria-label="Wishlist"
             className="relative p-2 text-slate-700 hover:text-rose-500 rounded-lg hover:bg-slate-50 transition-colors"
           >
@@ -213,7 +219,7 @@ export const Header: React.FC = () => {
                 {wishlist.length}
               </span>
             )}
-          </button>
+          </Link>
 
           {/* Cart Icon & Total (Desktop shows price, Mobile shows icon+badge) */}
           <button
