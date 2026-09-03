@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/common/ProductCard";
 import { ProductCardSkeleton } from "@/components/home/skeletons/HomeSkeletons";
@@ -44,7 +44,7 @@ export const BestDeals: React.FC = () => {
               reviewsCount: p.reviews_count || 40,
               specs: p.specs || undefined,
               inStock: (p.stock || 0) > 0,
-              badge: { text: "PRIVILEGE", type: "discount" },
+              badge: { text: "BEST DEAL", type: "discount" },
               description: p.description,
             };
           });
@@ -64,42 +64,46 @@ export const BestDeals: React.FC = () => {
   }, []);
 
   return (
-    <section id="deals" className="py-12 sm:py-16 bg-[#FAF9F6] border-b border-neutral-200/60">
+    <section id="deals" className="py-8 sm:py-12 bg-bg-light border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Luxury Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4">
-          <div>
-            <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.22em] block mb-1">
-              Privilege Selection
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-blue-100/70 text-brand-primary">
+              <Tag className="w-5 h-5" />
             </span>
-            <h2 className="text-2xl sm:text-3xl font-serif text-neutral-950 tracking-tight">
-              Curated <span className="italic font-serif">Exceptional Deals</span>
-            </h2>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mt-2" />
+            <div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
+                Best Deals
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Exclusive handpicked discounts on top tech
+              </p>
+            </div>
           </div>
 
           <Link
             href="/products?sort=discount"
-            className="group hidden sm:inline-flex items-center gap-2 text-xs font-bold text-neutral-900 hover:text-gold-600 uppercase tracking-wider transition-colors"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
           >
-            <span>Explore All Deals</span>
-            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+            <span>View All Deals</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Product Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {[1, 2, 3, 4].map((i) => (
               <ProductCardSkeleton key={i} />
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="py-12 text-center text-neutral-400 text-xs font-medium">
-            No active promotional items found.
+          <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+            No deals found in catalog.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {products.map((product) => (
               <ProductCard
                 key={product.id}

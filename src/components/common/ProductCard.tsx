@@ -62,24 +62,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     if (!badge) return "";
     switch (badge.type) {
       case "new":
-        return "bg-gold-500 text-obsidian-950 font-black tracking-wider";
+        return "bg-emerald-600 text-white";
       case "hot":
-        return "bg-rose-950/90 text-rose-200 border border-rose-500/40";
+        return "bg-rose-500 text-white animate-pulse";
       case "discount":
       default:
-        return "bg-obsidian-950 text-gold-400 border border-gold-500/30 tracking-wider";
+        return "bg-brand-accent text-white";
     }
   };
 
   return (
-    <div className="group relative flex flex-col justify-between bg-white rounded-2xl border border-neutral-200/80 shadow-xs hover:shadow-xl hover:shadow-black/8 hover:border-gold-500/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+    <div className="group relative flex flex-col justify-between bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 overflow-hidden">
       {/* Top Image Container */}
-      <div className="relative aspect-square w-full bg-[#FAF9F6] flex items-center justify-center p-3 sm:p-4 overflow-hidden border-b border-neutral-100">
-        {/* Luxury Badge (Top Left) */}
+      <div className="relative aspect-square w-full bg-slate-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        {/* Badge (Top Left) */}
         {badge && (
-          <div className="absolute top-2.5 left-2.5 z-10">
+          <div className="absolute top-2 left-2 z-10">
             <span
-              className={`inline-block px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-md uppercase shadow-sm ${getBadgeStyle()}`}
+              className={`inline-block px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-md uppercase tracking-wider shadow-sm ${getBadgeStyle()}`}
             >
               {badge.text}
             </span>
@@ -93,7 +93,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onToggleWishlist?.(id);
           }}
           aria-label="Wishlist"
-          className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 border border-neutral-200/80 shadow-sm flex items-center justify-center text-neutral-400 hover:text-rose-500 hover:border-rose-300 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+          className="absolute top-2 right-2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center text-slate-500 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200"
         >
           <Heart
             className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${
@@ -109,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               e.stopPropagation();
               onQuickView(productObj);
             }}
-            className="hidden lg:flex absolute bottom-2.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 items-center gap-1.5 bg-obsidian-950/90 hover:bg-obsidian-950 text-gold-400 text-xs font-semibold px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-lg border border-gold-500/30 cursor-pointer"
+            className="hidden lg:flex absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 items-center gap-1 bg-slate-900/80 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md"
           >
             <Eye className="w-3.5 h-3.5" />
             <span>Quick View</span>
@@ -126,24 +126,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-3 group-hover:scale-108 transition-transform duration-500 ease-out"
+            className="object-contain p-2 group-hover:scale-108 transition-transform duration-500 ease-out"
             loading="lazy"
           />
         </div>
       </div>
 
       {/* Product Content Details */}
-      <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-2">
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between gap-1.5">
         <div>
           {/* Brand */}
-          <span className="text-[9px] sm:text-[10px] font-bold text-neutral-400 tracking-[0.16em] uppercase block">
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
             {brand}
           </span>
 
           {/* Product Name */}
           <h3
             onClick={() => onQuickView?.(productObj)}
-            className="font-bold text-xs sm:text-sm text-neutral-900 line-clamp-2 hover:text-gold-600 cursor-pointer transition-colors leading-snug mt-0.5"
+            className="font-bold text-xs sm:text-sm text-slate-800 line-clamp-2 hover:text-brand-primary cursor-pointer transition-colors leading-snug mt-0.5"
             title={name}
           >
             {name}
@@ -151,30 +151,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Star Rating & Review Count */}
           <div className="flex items-center gap-1.5 mt-1.5">
-            <div className="flex items-center text-gold-500">
-              <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
+            <div className="flex items-center text-amber-400">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">{rating.toFixed(1)}</span>
-            <span className="text-[11px] text-neutral-400 font-normal">({reviewsCount})</span>
+            <span className="text-xs font-bold text-slate-700">{rating.toFixed(1)}</span>
+            <span className="text-[11px] text-slate-400 font-normal">({reviewsCount})</span>
           </div>
 
           {/* Specs Line */}
           {specs && (
-            <p className="text-[11px] sm:text-xs text-neutral-500 line-clamp-1 mt-1 font-normal">
+            <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 mt-1 font-normal">
               {specs}
             </p>
           )}
 
           {/* Optional Stock Progress Bar (for flash sale) */}
           {typeof stockPercentage === "number" && (
-            <div className="mt-2.5">
-              <div className="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+            <div className="mt-2">
+              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-gold-500 to-amber-600 h-1.5 rounded-full"
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 h-1.5 rounded-full"
                   style={{ width: `${stockPercentage}%` }}
                 />
               </div>
-              <span className="text-[10px] text-neutral-400 font-medium mt-0.5 block">
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
                 {stockPercentage}% Claimed
               </span>
             </div>
@@ -182,23 +182,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Pricing and Cart Button */}
-        <div className="flex items-center justify-between mt-2 pt-2.5 border-t border-neutral-100">
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
           <div className="flex flex-col">
-            <span className="text-sm sm:text-base font-black text-neutral-950 leading-tight">
+            <span className="text-sm sm:text-base font-extrabold text-brand-primary leading-tight">
               {formatBDT(price)}
             </span>
             {originalPrice && originalPrice > price && (
-              <span className="text-[10px] sm:text-xs text-neutral-400 line-through font-normal leading-tight">
+              <span className="text-[10px] sm:text-xs text-slate-400 line-through font-normal leading-tight">
                 {formatBDT(originalPrice)}
               </span>
             )}
           </div>
 
-          {/* Add to Cart Button (Luxury Obsidian & Gold Pill) */}
+          {/* Add to Cart Button (Desktop: Rounded Cart with Icon, Mobile: Compact + Button) */}
           <button
             onClick={() => onAddToCart(productObj)}
             aria-label={`Add ${name} to Cart`}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-obsidian-900 hover:bg-gold-500 text-gold-400 hover:text-obsidian-950 border border-amber-500/30 hover:border-gold-500 active:scale-95 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white flex items-center justify-center shadow-sm hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200"
           >
             {/* Desktop icon */}
             <ShoppingBag className="w-4 h-4 hidden sm:block" />

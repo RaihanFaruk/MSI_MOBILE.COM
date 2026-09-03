@@ -11,7 +11,7 @@ import {
   Package,
   Heart,
   Phone,
-  Sparkles,
+  Flame,
   ShieldCheck,
   ChevronRight,
   Smartphone,
@@ -95,7 +95,7 @@ export const MobileDrawer: React.FC = () => {
           setCategories(mapped);
         }
       } catch {
-        // Fallback
+        // Fallback to static category navigation
       }
     }
 
@@ -108,25 +108,25 @@ export const MobileDrawer: React.FC = () => {
     <div className="fixed inset-0 z-50 flex lg:hidden">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-sm animate-in fade-in"
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs animate-in fade-in"
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Drawer Panel */}
-      <div className="relative w-4/5 max-w-xs bg-obsidian-900 border-r border-amber-500/20 text-white h-full shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-left duration-200">
+      <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-left duration-200">
         {/* Drawer Header */}
-        <div className="p-4 bg-obsidian-950 border-b border-amber-500/15 flex items-center justify-between">
+        <div className="p-4 bg-navy-dark text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 text-obsidian-950 font-black text-xs px-2 py-0.5 rounded shadow-sm">
+            <span className="bg-brand-accent text-white font-extrabold text-sm px-2 py-0.5 rounded">
               MSI
             </span>
-            <span className="font-bold text-sm tracking-wide text-white">
-              MOBILE<span className="text-gold-500">.COM</span>
+            <span className="font-bold text-sm tracking-tight">
+              MOBILE<span className="text-blue-400">.COM</span>
             </span>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-1 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white"
+            className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>
@@ -137,28 +137,28 @@ export const MobileDrawer: React.FC = () => {
           {/* Quick Shortcuts */}
           <div className="grid grid-cols-2 gap-2">
             <Link
-              href="/products?featured=true"
+              href="/products?sort=discount"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-gold-500/10 text-gold-400 text-xs font-bold border border-gold-500/30"
+              className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-rose-50 text-brand-accent text-xs font-bold border border-rose-100 shadow-2xs"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>VIP Deals</span>
+              <Flame className="w-4 h-4 fill-brand-accent" />
+              <span>Flash Deals</span>
             </Link>
 
             <Link
               href="/products"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-neutral-800/80 text-white text-xs font-bold border border-neutral-700"
+              className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-blue-50 text-brand-primary text-xs font-bold border border-blue-100 shadow-2xs"
             >
-              <Package className="w-4 h-4 text-gold-500" />
-              <span>Catalog</span>
+              <Package className="w-4 h-4" />
+              <span>All Tech</span>
             </Link>
           </div>
 
           {/* Categories Title */}
           <div>
-            <span className="text-[10px] font-bold text-gold-400/90 uppercase tracking-widest block mb-2 px-1">
-              Curated Collections
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 px-1">
+              Shop Categories
             </span>
             <div className="space-y-1">
               {categories.map((cat) => (
@@ -166,22 +166,22 @@ export const MobileDrawer: React.FC = () => {
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-neutral-300 hover:text-gold-300 transition-colors"
+                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-brand-primary transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-gold-500">{getCategoryIcon(cat.icon)}</span>
+                    <span className="text-slate-400">{getCategoryIcon(cat.icon)}</span>
                     <span>{cat.name}</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-neutral-600" />
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
                 </Link>
               ))}
             </div>
           </div>
 
           {/* Account / Support Section */}
-          <div className="pt-3 border-t border-neutral-800 space-y-1">
-            <span className="text-[10px] font-bold text-gold-400/90 uppercase tracking-widest block mb-2 px-1">
-              Client Portal
+          <div className="pt-2 border-t border-slate-100 space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 px-1">
+              User & Support
             </span>
 
             {user ? (
@@ -189,33 +189,33 @@ export const MobileDrawer: React.FC = () => {
                 <Link
                   href="/account"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-neutral-200"
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
                 >
-                  <User className="w-4 h-4 text-gold-500" />
-                  <span>Account ({profile?.full_name || user.email})</span>
+                  <User className="w-4 h-4 text-brand-primary" />
+                  <span>My Account ({profile?.full_name || user.email})</span>
                 </Link>
                 <Link
                   href="/account/orders"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-neutral-200"
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
                 >
-                  <Package className="w-4 h-4 text-gold-500" />
-                  <span>Track Orders</span>
+                  <Package className="w-4 h-4 text-slate-500" />
+                  <span>Order History</span>
                 </Link>
                 <Link
                   href="/wishlist"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-rose-400"
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-rose-600"
                 >
                   <Heart className="w-4 h-4 text-rose-500" />
-                  <span>Wishlist ({wishlist.length})</span>
+                  <span>My Wishlist ({wishlist.length})</span>
                 </Link>
                 <button
                   onClick={() => {
                     signOut();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rose-950/30 text-xs font-medium text-rose-400"
+                  className="w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rose-50 text-xs font-semibold text-rose-600"
                 >
                   <span>Sign Out</span>
                 </button>
@@ -224,30 +224,30 @@ export const MobileDrawer: React.FC = () => {
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-neutral-200"
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
               >
-                <User className="w-4 h-4 text-gold-500" />
+                <User className="w-4 h-4 text-slate-500" />
                 <span>Sign In / Register</span>
               </Link>
             )}
 
             <a
-              href="tel:+8801999674662"
-              className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-neutral-800/60 text-xs font-medium text-gold-400"
+              href="tel:+8801700000000"
+              className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
             >
-              <Phone className="w-4 h-4 text-gold-500" />
-              <span>Concierge: +880 1999-MSIMOB</span>
+              <Phone className="w-4 h-4 text-emerald-600" />
+              <span>Customer Helpline: 01700-000000</span>
             </a>
           </div>
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-4 bg-obsidian-950 border-t border-neutral-800 text-center text-[10px] text-neutral-500 space-y-1">
-          <div className="flex items-center justify-center gap-1.5 font-bold text-neutral-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-gold-500" />
-            <span>100% Genuine Luxury Tech • Official Warranty</span>
+        <div className="p-4 bg-slate-50 border-t border-slate-100 text-center text-[10px] text-slate-400 space-y-1">
+          <div className="flex items-center justify-center gap-1 font-bold text-slate-600">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
+            <span>100% Genuine Tech with Official Warranty</span>
           </div>
-          <p>© 2026 MSI MOBILE.COM • Flagship Dhaka</p>
+          <p>© 2026 MSI MOBILE.COM • Bangladesh</p>
         </div>
       </div>
     </div>

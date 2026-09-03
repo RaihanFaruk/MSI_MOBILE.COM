@@ -1,61 +1,63 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, RefreshCw, Truck, HeadphonesIcon, Crown } from "lucide-react";
+import { ShieldCheck, RefreshCw, Truck, HeadphonesIcon, Award } from "lucide-react";
 
 export const WhyChooseUs: React.FC = () => {
   const FEATURES = [
     {
-      icon: <ShieldCheck className="w-7 h-7 text-gold-500" />,
-      title: "100% Genuine Provenance",
-      desc: "Every device is sealed, original, official brand-backed with BTRC verification stickers.",
+      icon: <ShieldCheck className="w-8 h-8 text-brand-primary" />,
+      title: "Authentic Products Only",
+      desc: "Every gadget is 100% genuine with official brand warranty & BTRC sticker approval.",
     },
     {
-      icon: <RefreshCw className="w-7 h-7 text-gold-500" />,
-      title: "Effortless 7-Day Exchange",
-      desc: "Guaranteed replacement policy with dedicated technical support if any flaw arises.",
+      icon: <RefreshCw className="w-8 h-8 text-emerald-600" />,
+      title: "7-Day Return Policy",
+      desc: "Hassle-free replacement and refund if you encounter any manufacturer defect.",
     },
     {
-      icon: <Truck className="w-7 h-7 text-gold-500" />,
-      title: "VIP White-Glove Transit",
-      desc: "Same-day express delivery in Dhaka and insured priority courier to all 64 districts.",
+      icon: <Truck className="w-8 h-8 text-indigo-600" />,
+      title: "Nationwide Delivery",
+      desc: "Super-fast 24h delivery inside Dhaka and 48-72h across all 64 districts in Bangladesh.",
     },
     {
-      icon: <HeadphonesIcon className="w-7 h-7 text-gold-500" />,
-      title: "24/7 Dedicated Concierge",
-      desc: "Personal technology advisors standing by via phone, WhatsApp & live chat for assistance.",
+      icon: <HeadphonesIcon className="w-8 h-8 text-rose-500" />,
+      title: "24/7 Customer Support",
+      desc: "Dedicated tech experts available anytime via phone, WhatsApp & live chat to assist you.",
     },
   ];
 
   return (
-    <section className="py-12 sm:py-16 bg-white border-b border-neutral-200/60">
+    <section className="py-8 sm:py-12 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center max-w-xl mx-auto mb-10 sm:mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-600 text-xs font-bold tracking-[0.2em] uppercase mb-2">
-            <Crown className="w-3.5 h-3.5" />
-            <span>THE MSI PROMISE</span>
+        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-brand-primary text-xs font-bold mb-2">
+            <Award className="w-3.5 h-3.5" />
+            <span>THE MSI MOBILE PROMISE</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-neutral-950 tracking-tight">
-            Why Discerning Clients <span className="italic font-serif">Choose MSI</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-dark tracking-tight">
+            Why Choose MSI MOBILE.COM?
           </h2>
-          <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mx-auto mt-2" />
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Setting the standard for premium electronics e-commerce in Bangladesh
+          </p>
         </div>
 
-        {/* 4 Feature Columns */}
+        {/* 4 Feature Columns (Desktop 4-col, Tablet/Mobile 2-col) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {FEATURES.map((item, index) => (
             <div
               key={index}
-              className="p-6 rounded-2xl bg-[#FAF9F6] border border-neutral-200/80 hover:border-gold-500/50 hover:bg-white hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 transition-all duration-300 flex flex-col items-start"
+              className="p-5 rounded-2xl bg-slate-50/70 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 flex flex-col items-start"
             >
-              <div className="p-3.5 rounded-2xl bg-obsidian-950 border border-gold-500/30 shadow-sm mb-4">
+              <div className="p-3 rounded-xl bg-white shadow-2xs mb-4">
                 {item.icon}
               </div>
-              <h3 className="font-bold text-sm sm:text-base text-neutral-900 mb-1.5 tracking-tight">
+              <h3 className="font-bold text-sm sm:text-base text-slate-900 mb-1.5">
                 {item.title}
               </h3>
-              <p className="text-xs text-neutral-500 leading-relaxed font-light">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 {item.desc}
               </p>
             </div>

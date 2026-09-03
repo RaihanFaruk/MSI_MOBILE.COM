@@ -11,48 +11,48 @@ export const PromoBanner: React.FC = () => {
   const handleCopyCode = () => {
     navigator.clipboard.writeText("MSIFIRST");
     setCopied(true);
-    showToast("Privilege Code Copied", "Use code 'MSIFIRST' at checkout for 10% privilege savings.", "success");
+    showToast("Coupon Copied!", "Use coupon code 'MSIFIRST' during checkout for 10% off.", "success");
     setTimeout(() => setCopied(false), 3000);
   };
 
   return (
-    <section className="py-8 sm:py-12 bg-white">
+    <section className="py-6 sm:py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="relative rounded-3xl bg-obsidian-950 border border-gold-500/30 p-8 sm:p-12 text-white shadow-2xl overflow-hidden tech-grid-overlay">
-          {/* Ambient Gold Blurs */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-10 w-72 h-72 bg-amber-600/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-700 via-brand-primary to-indigo-800 p-6 sm:p-10 text-white shadow-xl overflow-hidden tech-grid-overlay">
+          {/* Decorative glowing background blurs */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-10 w-60 h-60 bg-blue-400/20 rounded-full blur-xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 text-center lg:text-left">
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 text-center lg:text-left">
             {/* Left Content */}
-            <div className="space-y-3 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs font-bold tracking-[0.2em] uppercase">
-                <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                <span>Client Privilege Invitation</span>
+            <div className="space-y-2 max-w-xl">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-blue-100 text-xs font-bold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>EXCLUSIVE FIRST ORDER OFFER</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-white tracking-tight leading-tight">
-                Receive <span className="italic font-serif text-gold-400">10% Privilege Savings</span> on First Acquisition
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
+                Get 10% Off Your First Order
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light">
-                Enjoy instant savings on all flagships, workstations, and high-end audio horology. Valid for new boutique clients across Bangladesh.
+              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+                Enjoy instant savings on all flagships, laptops, and audio gear. Valid for all new registered customers in Bangladesh.
               </p>
 
               {/* Coupon Code Pill */}
-              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Bespoke Code:</span>
+              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3">
+                <span className="text-xs font-semibold text-blue-200">Use Code:</span>
                 <div
                   onClick={handleCopyCode}
-                  className="flex items-center gap-2.5 bg-obsidian-900 border border-gold-500/50 text-gold-300 px-4 py-2 rounded-xl font-mono font-black text-sm sm:text-base cursor-pointer hover:bg-gold-500/10 active:scale-95 transition-all shadow-md group"
+                  className="flex items-center gap-2 bg-white text-brand-primary px-3.5 py-1.5 rounded-lg font-mono font-extrabold text-sm sm:text-base cursor-pointer hover:bg-blue-50 active:scale-95 transition-all shadow-md group"
                 >
                   <span>MSIFIRST</span>
                   {copied ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4 text-emerald-600" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gold-500/80 group-hover:text-gold-400" />
+                    <Copy className="w-4 h-4 text-slate-400 group-hover:text-brand-primary" />
                   )}
                 </div>
-                <span className="text-[11px] text-neutral-500">
-                  {copied ? "Copied to clipboard" : "(Click to copy)"}
+                <span className="text-[11px] text-blue-200">
+                  {copied ? "Copied to clipboard!" : "(Click to copy)"}
                 </span>
               </div>
             </div>
@@ -61,9 +61,9 @@ export const PromoBanner: React.FC = () => {
             <div className="shrink-0">
               <a
                 href="#smartphones"
-                className="inline-flex items-center gap-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-obsidian-950 font-black text-xs sm:text-sm uppercase tracking-wider px-8 py-4 rounded-xl shadow-xl shadow-gold-500/20 active:scale-95 transition-all duration-200 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-white text-brand-primary hover:bg-blue-50 active:scale-95 font-bold text-sm sm:text-base px-6 sm:px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                <span>Acquire Now</span>
+                <span>Shop Now</span>
                 <ArrowRight className="w-4 h-4" />
               </a>
             </div>

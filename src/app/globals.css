@@ -3,22 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --brand-primary: #D4AF37;
-  --brand-primary-dark: #BF9528;
-  --brand-accent: #D4AF37;
-  --gold-primary: #D4AF37;
-  --gold-metallic: #C9A227;
-  --gold-light: #F5E6BA;
-  --gold-dark: #A67C1E;
-  --navy-dark: #0A0A0A;
-  --navy-darker: #050505;
-  --bg-light: #F7F7F5;
+  --brand-primary: #1D4ED8;
+  --brand-primary-dark: #1E3A8A;
+  --brand-accent: #EF4444;
+  --navy-dark: #0F172A;
+  --navy-darker: #020617;
+  --bg-light: #F8FAFC;
   --bg-white: #FFFFFF;
-  --text-primary: #0A0A0A;
-  --text-secondary: #525252;
-  --star-yellow: #D4AF37;
-  --badge-green: #10B981;
-  --badge-red: #BE123C;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --star-yellow: #FACC15;
+  --badge-green: #16A34A;
+  --badge-red: #EF4444;
 }
 
 html {
@@ -27,73 +23,51 @@ html {
 
 body {
   color: var(--text-primary);
-  background-color: #FFFFFF;
+  background-color: var(--bg-white);
   font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
-  letter-spacing: -0.011em;
 }
 
-/* Custom Scrollbar - Minimal Obsidian & Gold */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
-  border-radius: 3px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4AF37;
+  background: #94a3b8;
 }
 
-/* Luxury Metallic Gold Gradient Text */
-.gold-gradient-text {
-  background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 50%, #AA820A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Luxury Gold Border Glow */
-.gold-border-subtle {
-  border-color: rgba(212, 175, 55, 0.25);
-}
-
-.gold-border-glow:hover {
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 0 20px -3px rgba(212, 175, 55, 0.2);
-}
-
-/* Luxury Obsidian Grid Overlay */
+/* Tech Circuit Pattern Utility */
 .tech-circuit-pattern {
-  background-color: #0A0A0A;
-  background-image: radial-gradient(rgba(212, 175, 55, 0.08) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-color: #0F172A;
+  background-image: radial-gradient(#1e293b 1px, transparent 1px), radial-gradient(#1e293b 1px, #0F172A 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
 }
 
 .tech-grid-overlay {
-  background-image: linear-gradient(to right, rgba(212, 175, 55, 0.04) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(212, 175, 55, 0.04) 1px, transparent 1px);
-  background-size: 36px 36px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Gold Shimmer Skeleton */
-.gold-shimmer {
-  background: linear-gradient(90deg, #161616 0%, rgba(212, 175, 55, 0.1) 50%, #161616 100%);
+/* Shimmer animation utility */
+.shimmer-bg {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
   background-size: 200% 100%;
 }
 
-.gold-shimmer-light {
-  background: linear-gradient(90deg, #F5F5F3 0%, rgba(212, 175, 55, 0.15) 50%, #F5F5F3 100%);
-  background-size: 200% 100%;
-}
-
-/* Smooth Luxury Transitions */
-.transition-luxury {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* Smooth badges and cards transitions */
+.transition-smooth {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

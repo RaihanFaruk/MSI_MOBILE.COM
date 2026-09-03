@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, CheckCircle2, Quote, Sparkles } from "lucide-react";
+import { Star, CheckCircle2, Quote, MessageSquare } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Testimonial } from "@/types";
 
@@ -9,28 +9,28 @@ const INITIAL_TESTIMONIALS: Testimonial[] = [
   {
     id: "t-1",
     name: "Tanvir Ahmed",
-    location: "Gulshan 2, Dhaka",
-    productBought: "Apple iPhone 16 Pro Max 512GB (Titanium)",
+    location: "Dhanmondi, Dhaka",
+    productBought: "Apple iPhone 16 Pro Max 256GB",
     rating: 5,
-    comment: "অসাধারণ এক্সপেরিয়েন্স! অর্ডার করার মাত্র ৩ ঘণ্টার মধ্যে গুলশানে হোয়াইট-গ্লাভ ডেলিভারি পেয়েছি। প্রোডাক্ট ১০০% ইনট্যাক্ট এবং অফিশিয়াল আইএমইআই ভেরিফায়েড। প্যাকেজিং খুবই সুরক্ষিত ছিল।",
+    comment: "অসাধারণ সার্ভিস! অর্ডার করার মাত্র ৩ ঘণ্টার মধ্যে ধানমন্ডিতে হোম ডেলিভারি পেয়েছি। প্রোডাক্ট ১০০% ইনট্যাক্ট এবং অফিশিয়াল আইএমইআই ভেরিফায়েড। প্যাকেজিং খুবই নিরাপদ ছিল।",
     date: "2 days ago",
   },
   {
     id: "t-2",
     name: "Farhana Yasmin",
-    location: "Banani, Dhaka",
-    productBought: "Sony WH-1000XM5 Master ANC",
+    location: "Uttara, Dhaka",
+    productBought: "Sony WH-1000XM5 ANC Headphones",
     rating: 5,
-    comment: "MSI Mobile থেকে প্রথমবার অর্ডার করেছিলাম। সাউন্ড কোয়ালিটি এবং অ্যাকোস্টিক ক্ল্যারিটি এক কথায় অনবদ্য। ভিআইপি কাস্টমার সাপোর্ট অত্যন্ত আন্তরিক ও পেশাদার!",
+    comment: "MSI Mobile থেকে প্রথমবার অর্ডার করেছিলাম। সাউন্ড কোয়ালিটি এবং নয়েজ ক্যান্সেলেশন এক কথায় অনবদ্য। bKash পেমেন্টে ডিসকাউন্ট পেয়েছি আর কাস্টমার সাপোর্ট খুবই কো-অপারেটিভ ছিল!",
     date: "5 days ago",
   },
   {
     id: "t-3",
     name: "Mahmudul Hasan",
     location: "Chittagong",
-    productBought: "MSI Raider GE78 HX (RTX 4080)",
+    productBought: "MSI Raider GE78 HX Gaming Laptop",
     rating: 5,
-    comment: "চট্টগ্রামে ২ দিনের মধ্যে সিকিউরড প্যাকেজে ল্যাপটপ হাতে পেয়েছি। অফিশিয়াল ২ বছরের ওয়ারেন্টি কার্ড ও ডকুমেন্টস সব পেয়েছি। প্রিমিয়াম টেক লাভারদের জন্য বেস্ট চয়েস!",
+    comment: "চট্টগ্রামে ২ দিনের মধ্যে সিকিউরড কাঠের ক্রেট প্যাকেজে ল্যাপটপ হাতে পেয়েছি। কোনো ড্যামেজ বা ইস্যু নেই। অফিশিয়াল ২ বছরের ওয়ারেন্টি কার্ড সহ সব পেপার পেয়েছি। হাইলি রিকমেন্ডেড!",
     date: "1 week ago",
   },
 ];
@@ -52,7 +52,7 @@ export const Testimonials: React.FC = () => {
           const mapped: Testimonial[] = (data as any[]).map((r, idx) => ({
             id: String(r.id),
             name: ["Tanvir Ahmed", "Farhana Yasmin", "Mahmudul Hasan"][idx % 3],
-            location: ["Gulshan 2, Dhaka", "Banani, Dhaka", "Chittagong"][idx % 3],
+            location: ["Dhanmondi, Dhaka", "Uttara, Dhaka", "Chittagong"][idx % 3],
             productBought: Array.isArray(r.products) ? r.products[0]?.name : r.products?.name || "Official Tech Product",
             rating: Number(r.rating) || 5,
             comment: r.comment || "",
@@ -61,7 +61,7 @@ export const Testimonials: React.FC = () => {
           setTestimonials(mapped);
         }
       } catch {
-        // Fallback
+        // Use default testimonials on network fallback
       }
     }
 
@@ -69,18 +69,20 @@ export const Testimonials: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-12 sm:py-16 bg-[#FAF9F6] border-b border-neutral-200/60">
+    <section className="py-8 sm:py-12 bg-bg-light border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-600 text-xs font-bold tracking-[0.2em] uppercase mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>CLIENT REPUTATION</span>
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100/70 text-brand-primary text-xs font-bold mb-2">
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>REAL BUYER EXPERIENCES</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-neutral-950 tracking-tight">
-            Voices of <span className="italic font-serif">Distinction</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-dark tracking-tight">
+            What Our Customers Say
           </h2>
-          <div className="w-12 h-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full mx-auto mt-2" />
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Over 50,000+ satisfied tech enthusiasts across all 64 districts in Bangladesh
+          </p>
         </div>
 
         {/* 3 Testimonial Cards */}
@@ -88,44 +90,44 @@ export const Testimonials: React.FC = () => {
           {testimonials.map((item) => (
             <div
               key={item.id}
-              className="bg-white p-6 sm:p-7 rounded-2xl border border-neutral-200/80 shadow-xs hover:shadow-xl hover:shadow-black/5 hover:border-gold-500/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+              className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 {/* Stars and Quote mark */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center text-gold-500">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center text-amber-400">
                     {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-gold-500 text-gold-500" />
+                      <Star key={i} className="w-4 h-4 fill-amber-400" />
                     ))}
                   </div>
-                  <Quote className="w-7 h-7 text-neutral-200 stroke-1" />
+                  <Quote className="w-6 h-6 text-slate-200 stroke-1" />
                 </div>
 
                 {/* Comment Text */}
-                <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed font-light italic">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
                   &ldquo;{item.comment}&rdquo;
                 </p>
               </div>
 
               {/* Author & Product */}
-              <div className="mt-6 pt-4 border-t border-neutral-100">
+              <div className="mt-5 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-neutral-900 leading-tight">
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-tight">
                       {item.name}
                     </h4>
-                    <span className="text-[11px] text-neutral-400 block font-light">{item.location}</span>
+                    <span className="text-[11px] text-slate-400 block">{item.location}</span>
                   </div>
 
                   {/* Verified Buyer Badge */}
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gold-700 bg-gold-500/10 px-2.5 py-1 rounded-full border border-gold-500/25 uppercase tracking-wider">
-                    <CheckCircle2 className="w-3 h-3 text-gold-600" />
-                    <span>Verified Client</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-brand-primary bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+                    <CheckCircle2 className="w-3 h-3 text-brand-primary" />
+                    <span>Verified Buyer</span>
                   </span>
                 </div>
 
-                <div className="mt-2 text-[10px] text-neutral-400 font-medium truncate">
-                  Acquired: <strong className="text-neutral-700 font-semibold">{item.productBought}</strong>
+                <div className="mt-2 text-[10px] text-slate-400 font-medium truncate">
+                  Purchased: <strong className="text-slate-600 font-semibold">{item.productBought}</strong>
                 </div>
               </div>
             </div>
