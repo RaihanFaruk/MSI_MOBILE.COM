@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Zap, ArrowRight, Loader2 } from "lucide-react";
+import { Zap, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/common/ProductCard";
+import { ProductCardSkeleton } from "@/components/home/skeletons/HomeSkeletons";
 import { useStore } from "@/context/StoreContext";
 import { Product, DbProduct } from "@/types";
 
@@ -156,9 +157,10 @@ export const FlashSaleBanner: React.FC = () => {
 
         {/* Product Grid */}
         {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-            <span className="text-xs font-semibold">Loading flash sale items...</span>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs font-semibold">

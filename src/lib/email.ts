@@ -1,22 +1,6 @@
 /**
- * Transactional Email Scaffold for MSI MOBILE.COM
- * 
- * Supports:
- * 1. Resend (Modern transactional email API)
- * 2. Nodemailer / SMTP (Custom Mail Server / cPanel / Gmail SMTP)
- * 
- * TO ACTIVATE:
- * Choose your email provider and set the corresponding variables in .env.local:
- * 
- * # Option A: Resend (Recommended)
- * RESEND_API_KEY=re_your_api_key_here
- * EMAIL_FROM="MSI MOBILE <orders@msimobile.com.bd>"
- * 
- * # Option B: Standard SMTP (Nodemailer)
- * SMTP_HOST=mail.yourdomain.com
- * SMTP_PORT=465
- * SMTP_USER=orders@yourdomain.com
- * SMTP_PASS=your_smtp_password
+ * Transactional Email Service for MSI MOBILE.COM
+ * Provider: Brevo (Sendinblue) Transactional API (v3)
  */
 
 export interface OrderEmailData {
@@ -94,7 +78,7 @@ export function generateOrderConfirmationHtml(data: OrderEmailData): string {
               </table>
 
               <div style="margin-top: 28px; text-align: center;">
-                <a href="https://msimobile.com.bd/orders/${data.order_number}/track" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; padding: 12px 24px; border-radius: 10px;">
+                <a href="https://msi-mobile-com.vercel.app/orders/${data.order_number}/track" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; padding: 12px 24px; border-radius: 10px;">
                   লাইভ পার্সেল ট্র্যাক করুন
                 </a>
               </div>
@@ -104,7 +88,7 @@ export function generateOrderConfirmationHtml(data: OrderEmailData): string {
           <!-- Footer -->
           <tr>
             <td style="background-color: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px;">
-              <p style="margin: 0;">সাহায্যের জন্য কল করুন: <strong>+880 1999-MSIMOB</strong> | support@msimobile.com.bd</p>
+              <p style="margin: 0;">সাহায্যের জন্য কল করুন: <strong>+880 1999-MSIMOB</strong> | moyazzembintelamiya@gmail.com</p>
               <p style="margin: 6px 0 0 0;">© ${new Date().getFullYear()} MSI MOBILE.COM Bangladesh.</p>
             </td>
           </tr>
@@ -115,47 +99,85 @@ export function generateOrderConfirmationHtml(data: OrderEmailData): string {
 }
 
 /**
- * Sends order confirmation email via configured service
+ * Sends order confirmation email via Brevo (Sendinblue) Transactional API
  */
 export async function sendOrderConfirmationEmail(
   data: OrderEmailData
 ): Promise<{ success: boolean; message: string }> {
-  const resendApiKey = process.env.RESEND_API_KEY;
-
-  if (!resendApiKey) {
-    console.log(
-      `[EmailService] Email API key not configured. Mock confirmation email generated for Order ${data.order_number} to ${data.customer_email}.`
+  // 1. Recipient validation guard
+  if (!data.customer_email || !data.customer_email.includes("@")) {
+    console.error(
+      `[BrevoEmailService] Invalid or missing customer email for Order ${data.order_number}: "${data.customer_email}"`
     );
     return {
-      success: true,
-      message: "Simulated email dispatch (Pending live RESEND_API_KEY / SMTP credentials).",
+      success: false,
+      message: "Customer email is missing or invalid.",
     };
   }
 
-  // --- Live Resend Implementation Ready ---
+  const brevoApiKey = process.env.BREVO_API_KEY;
+
+  if (!brevoApiKey) {
+    console.log(
+      `[BrevoEmailService] BREVO_API_KEY not configured. Simulated confirmation email for Order ${data.order_number} to ${data.customer_email}.`
+    );
+    return {
+      success: true,
+      message: "Simulated email dispatch (Pending BREVO_API_KEY).",
+    };
+  }
+
+  // 2. Parse sender details from EMAIL_FROM (e.g. "MSI MOBILE <moyazzembintelamiya@gmail.com>")
+  const fromEnv = process.env.EMAIL_FROM || "MSI MOBILE <moyazzembintelamiya@gmail.com>";
+  const fromMatch = fromEnv.match(/(.*)<(.*)>/);
+  const senderName = fromMatch ? fromMatch[1].trim() : "MSI MOBILE";
+  const senderEmail = fromMatch ? fromMatch[2].trim() : "moyazzembintelamiya@gmail.com";
+  const recipientEmail = data.customer_email.trim();
+
+  // 3. Dispatch via Brevo SMTP API v3
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
+        accept: "application/json",
+        "api-key": brevoApiKey,
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || "MSI MOBILE <orders@msimobile.com.bd>",
-        to: data.customer_email,
+        sender: {
+          name: senderName,
+          email: senderEmail,
+        },
+        to: [
+          {
+            email: recipientEmail,
+            name: data.customer_name || "Customer",
+          },
+        ],
         subject: `Order Confirmed: ${data.order_number} — MSI MOBILE.COM`,
-        html: generateOrderConfirmationHtml(data),
+        htmlContent: generateOrderConfirmationHtml(data),
       }),
     });
 
     const result = await res.json();
     if (!res.ok) {
-      return { success: false, message: result.message || "Failed to send email via Resend." };
+      console.error(
+        `[BrevoEmailService] Brevo delivery rejected for Order ${data.order_number} to ${recipientEmail}. ` +
+          `Status: ${res.status}. Reason: ${result.message || JSON.stringify(result)}`
+      );
+      return {
+        success: false,
+        message: result.message || "Failed to send email via Brevo.",
+      };
     }
 
-    return { success: true, message: "Confirmation email sent successfully!" };
+    console.log(
+      `[BrevoEmailService] Order confirmation email successfully dispatched to ${recipientEmail} (Message ID: ${result.messageId}).`
+    );
+    return { success: true, message: "Confirmation email sent successfully via Brevo!" };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Failed to connect to email service.";
+    const msg = err instanceof Error ? err.message : "Failed to connect to Brevo email service.";
+    console.error(`[BrevoEmailService] Unexpected error sending email via Brevo:`, err);
     return { success: false, message: msg };
   }
 }

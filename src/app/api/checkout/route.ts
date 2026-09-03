@@ -4,8 +4,8 @@ import { initiateOnlinePayment } from "@/lib/payment-gateway";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
 interface CheckoutItemPayload {
-  product_id: number;
-  variation_id?: number | null;
+  product_id: string | number;
+  variation_id?: string | number | null;
   quantity: number;
   client_unit_price?: number;
 }

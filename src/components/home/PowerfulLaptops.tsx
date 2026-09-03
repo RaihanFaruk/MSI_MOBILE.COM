@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Laptop, ArrowRight, Loader2 } from "lucide-react";
+import { Laptop, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LaptopCard } from "@/components/common/LaptopCard";
 import { useStore } from "@/context/StoreContext";
@@ -98,9 +98,24 @@ export const PowerfulLaptops: React.FC = () => {
 
         {/* Wide Laptop Cards */}
         {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-            <span className="text-xs font-semibold">Loading powerful laptops...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-slate-200/70 p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-6 animate-pulse"
+              >
+                <div className="w-full sm:w-48 aspect-video bg-slate-100 rounded-xl" />
+                <div className="flex-1 w-full space-y-3">
+                  <div className="w-20 h-4 bg-slate-200 rounded-full" />
+                  <div className="w-3/4 h-5 bg-slate-200 rounded-md" />
+                  <div className="w-1/2 h-4 bg-slate-100 rounded-md" />
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="w-28 h-6 bg-slate-200 rounded-md" />
+                    <div className="w-24 h-9 bg-slate-200 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : laptops.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs font-semibold">

@@ -155,6 +155,7 @@ export const HeroCarousel: React.FC = () => {
                   alt={slide.productName}
                   fill
                   priority
+                  sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, 384px"
                   className="object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]"
                 />
               </div>

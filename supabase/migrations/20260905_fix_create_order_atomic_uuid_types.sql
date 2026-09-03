@@ -1,5 +1,6 @@
--- Migration: Fix create_order_atomic coupons column references and UUID product/variation types
--- Date: 2026-09-03
+-- Migration: Fix create_order_atomic UUID product_id & variation_id types
+-- Date: 2026-09-05
+-- Resolves: "invalid input syntax for type integer: 'a0000000-0000-0000-0000-000000000003'"
 
 CREATE OR REPLACE FUNCTION public.create_order_atomic(
   p_user_id UUID,
