@@ -151,13 +151,13 @@ export default function AccountPage() {
           <div className="space-y-3 pt-2">
             <Link
               href="/login?redirect=/account"
-              className="block w-full bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-3 px-6 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-blue-600/20"
+              className="block w-full text-center bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-3 px-6 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-blue-600/20 active:scale-[0.99]"
             >
               Sign In
             </Link>
             <Link
-              href="/signup"
-              className="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl text-xs sm:text-sm transition-all"
+              href="/signup?redirect=/account"
+              className="block w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl text-xs sm:text-sm transition-all active:scale-[0.99]"
             >
               Create New Account
             </Link>

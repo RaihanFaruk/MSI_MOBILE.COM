@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
 import {
   Users,
   Search,
@@ -12,6 +13,10 @@ import {
   Phone,
   Mail,
   Calendar,
+  Trash2,
+  AlertTriangle,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 
 interface UserProfile {
@@ -26,10 +31,17 @@ interface UserProfile {
 }
 
 export default function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "customer">("all");
+
+  // Deletion Modal States
+  const [userToDelete, setUserToDelete] = useState<UserProfile | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -55,6 +67,52 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeleting(true);
+    setActionError(null);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        setActionError("Your session has expired. Please refresh the page.");
+        setDeleting(false);
+        return;
+      }
+
+      const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setActionError(data.message || "Failed to delete user account.");
+        setDeleting(false);
+        return;
+      }
+
+      // Optimistically remove user from table
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      setActionSuccess(`User ${userToDelete.email} was successfully deleted.`);
+      setUserToDelete(null);
+
+      setTimeout(() => {
+        setActionSuccess(null);
+      }, 5000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete user.";
+      setActionError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const nameMatch = (u.full_name || "").toLowerCase().includes(searchQuery.toLowerCase());
     const emailMatch = (u.email || "").toLowerCase().includes(searchQuery.toLowerCase());
@@ -72,6 +130,22 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
+      {/* Success Notification Banner */}
+      {actionSuccess && (
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-emerald-400 text-xs font-semibold animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{actionSuccess}</span>
+          </div>
+          <button
+            onClick={() => setActionSuccess(null)}
+            className="text-emerald-400 hover:text-emerald-300"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -84,7 +158,7 @@ export default function AdminUsersPage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            View registered customers, admin staff accounts, and contact details.
+            View registered customers, admin staff accounts, and manage account deletions.
           </p>
         </div>
 
@@ -201,99 +275,204 @@ export default function AdminUsersPage() {
                   <th className="px-5 py-3.5">Location</th>
                   <th className="px-5 py-3.5">Role</th>
                   <th className="px-5 py-3.5">Joined Date</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
-                    {/* User */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                          {(u.full_name || u.email || "U").charAt(0).toUpperCase()}
+                {filteredUsers.map((u) => {
+                  const isCurrentAdmin = currentUser?.id === u.id;
+                  return (
+                    <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
+                      {/* User */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                            {(u.full_name || u.email || "U").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-slate-100 block">
+                                {u.full_name || "Guest / Customer"}
+                              </span>
+                              {isCurrentAdmin && (
+                                <span className="px-1.5 py-0.2 bg-blue-500/20 text-blue-400 text-[10px] rounded font-bold">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-mono">
+                              ID: {u.id.slice(0, 8)}...
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-bold text-slate-100 block">
-                            {u.full_name || "Guest / Customer"}
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-mono">
-                            ID: {u.id.slice(0, 8)}...
-                          </span>
+                      </td>
+
+                      {/* Contact Info */}
+                      <td className="px-5 py-4 space-y-1">
+                        <div className="flex items-center gap-1.5 text-slate-300">
+                          <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span>{u.email}</span>
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Contact Info */}
-                    <td className="px-5 py-4 space-y-1">
-                      <div className="flex items-center gap-1.5 text-slate-300">
-                        <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                        <span>{u.email}</span>
-                      </div>
-                      {u.phone && (
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
-                          <Phone className="w-3 h-3 text-slate-500 shrink-0" />
-                          <span>{u.phone}</span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Location */}
-                    <td className="px-5 py-4 text-slate-400">
-                      {u.district ? (
-                        <span>
-                          {u.district}
-                          {u.address ? `, ${u.address.slice(0, 20)}...` : ""}
-                        </span>
-                      ) : (
-                        <span className="text-slate-600">—</span>
-                      )}
-                    </td>
-
-                    {/* Role */}
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                          u.role === "admin"
-                            ? "bg-purple-500/10 border border-purple-500/30 text-purple-400"
-                            : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-                        }`}
-                      >
-                        {u.role === "admin" ? (
-                          <>
-                            <ShieldCheck className="w-3 h-3" />
-                            <span>Administrator</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck className="w-3 h-3" />
-                            <span>Customer</span>
-                          </>
+                        {u.phone && (
+                          <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                            <Phone className="w-3 h-3 text-slate-500 shrink-0" />
+                            <span>{u.phone}</span>
+                          </div>
                         )}
-                      </span>
-                    </td>
+                      </td>
 
-                    {/* Joined Date */}
-                    <td className="px-5 py-4 whitespace-nowrap text-[11px] text-slate-400">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                        <span>
-                          {u.created_at
-                            ? new Date(u.created_at).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : "Active"}
+                      {/* Location */}
+                      <td className="px-5 py-4 text-slate-400">
+                        {u.district ? (
+                          <span>
+                            {u.district}
+                            {u.address ? `, ${u.address.slice(0, 20)}...` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* Role */}
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            u.role === "admin"
+                              ? "bg-purple-500/10 border border-purple-500/30 text-purple-400"
+                              : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                          }`}
+                        >
+                          {u.role === "admin" ? (
+                            <>
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Administrator</span>
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="w-3 h-3" />
+                              <span>Customer</span>
+                            </>
+                          )}
                         </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* Joined Date */}
+                      <td className="px-5 py-4 whitespace-nowrap text-[11px] text-slate-400">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span>
+                            {u.created_at
+                              ? new Date(u.created_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
+                              : "Active"}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-4 text-right">
+                        {isCurrentAdmin ? (
+                          <span className="text-[11px] text-slate-500 font-medium italic">
+                            Active Admin
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setActionError(null);
+                              setUserToDelete(u);
+                            }}
+                            title={`Delete ${u.full_name || u.email}`}
+                            aria-label={`Delete ${u.full_name || u.email}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 text-xs font-semibold transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {/* Irreversible Delete Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-start justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-500 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <button
+                onClick={() => {
+                  if (!deleting) setUserToDelete(null);
+                }}
+                disabled={deleting}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-extrabold text-white tracking-tight">
+                Delete User Account?
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                Are you sure you want to permanently delete{" "}
+                <strong className="text-white">{userToDelete.full_name || userToDelete.email}</strong>{" "}
+                (<span className="font-mono text-xs">{userToDelete.email}</span>)?
+              </p>
+              <div className="p-3 bg-rose-950/30 border border-rose-900/40 rounded-xl text-[11px] text-rose-300 leading-relaxed mt-3">
+                ⚠️ <strong>Warning:</strong> This action is irreversible. The authentication account and profile will be deleted. Any past orders placed by this user will be preserved for store accounting records.
+              </div>
+            </div>
+
+            {actionError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-xl flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setUserToDelete(null)}
+                disabled={deleting}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteUser}
+                disabled={deleting}
+                className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-rose-600/30 disabled:opacity-60"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Confirm Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
