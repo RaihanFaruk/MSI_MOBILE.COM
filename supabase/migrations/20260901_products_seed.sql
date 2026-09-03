@@ -170,8 +170,10 @@ DECLARE
   v_product_id UUID;
   v_variation_id UUID;
   v_quantity INTEGER;
-  v_product_row RECORD;
-  v_variation_row RECORD;
+  v_product_row public.products%ROWTYPE;
+  v_variation_row public.product_variations%ROWTYPE;
+  v_item_color TEXT;
+  v_item_storage TEXT;
   v_line_unit_price NUMERIC(12, 2);
   v_line_total NUMERIC(12, 2);
   v_subtotal NUMERIC(12, 2) := 0;
@@ -192,6 +194,8 @@ BEGIN
     v_product_id := (v_item->>'product_id')::UUID;
     v_variation_id := NULLIF(NULLIF(v_item->>'variation_id', 'null'), 'std')::UUID;
     v_quantity := GREATEST(1, COALESCE((v_item->>'quantity')::INTEGER, 1));
+    v_item_color := NULL;
+    v_item_storage := NULL;
 
     -- Acquire exclusive row lock on product
     SELECT * INTO v_product_row
@@ -220,7 +224,8 @@ BEGIN
           v_product_row.name, COALESCE(v_variation_row.color, ''), COALESCE(v_variation_row.storage, ''), v_variation_row.stock;
       END IF;
 
-      -- Authoritative price from variation or base product
+      v_item_color := v_variation_row.color;
+      v_item_storage := v_variation_row.storage;
       v_line_unit_price := COALESCE(v_variation_row.price, v_product_row.price);
 
       -- Decrement variation stock atomically
@@ -244,13 +249,13 @@ BEGIN
     v_line_total := v_line_unit_price * v_quantity;
     v_subtotal := v_subtotal + v_line_total;
 
-    -- Append to server-verified items array
+    -- Append to server-verified items array safely
     v_verified_items := v_verified_items || jsonb_build_object(
       'product_id', v_product_id,
       'variation_id', v_variation_id,
       'product_name', v_product_row.name,
-      'color', CASE WHEN v_variation_id IS NOT NULL THEN v_variation_row.color ELSE NULL END,
-      'storage', CASE WHEN v_variation_id IS NOT NULL THEN v_variation_row.storage ELSE NULL END,
+      'color', v_item_color,
+      'storage', v_item_storage,
       'unit_price', v_line_unit_price,
       'quantity', v_quantity,
       'line_total', v_line_total

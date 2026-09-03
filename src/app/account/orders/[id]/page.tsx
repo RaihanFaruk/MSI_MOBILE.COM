@@ -210,43 +210,48 @@ export default function OrderDetailsPage() {
 
               <div className="divide-y divide-slate-100">
                 {order.items &&
-                  order.items.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="relative w-16 h-16 bg-slate-50 rounded-xl overflow-hidden border border-slate-200 shrink-0">
-                          {item.image_url ? (
-                            <Image
-                              src={item.image_url}
-                              alt={item.name}
-                              fill
-                              className="object-contain p-1.5"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                              <Package className="w-6 h-6" />
-                            </div>
-                          )}
+                  order.items.map((item, idx) => {
+                    const itemName = item.name || item.product_name || "Purchased Product";
+                    const itemPrice = item.price ?? item.unit_price ?? 0;
+                    const itemQty = item.quantity || 1;
+                    return (
+                      <div
+                        key={idx}
+                        className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="relative w-16 h-16 bg-slate-50 rounded-xl overflow-hidden border border-slate-200 shrink-0">
+                            {item.image_url ? (
+                              <Image
+                                src={item.image_url}
+                                alt={itemName}
+                                fill
+                                className="object-contain p-1.5"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                <Package className="w-6 h-6" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
+                              {itemName}
+                            </h4>
+                            <span className="text-[11px] text-slate-500 block">
+                              Qty: <strong>{itemQty}</strong> × {formatBDT(itemPrice)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
-                            {item.name}
-                          </h4>
-                          <span className="text-[11px] text-slate-500 block">
-                            Qty: <strong>{item.quantity}</strong> × {formatBDT(item.price)}
+
+                        <div className="text-right shrink-0">
+                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 block">
+                            {formatBDT(itemPrice * itemQty)}
                           </span>
                         </div>
                       </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="text-xs sm:text-sm font-extrabold text-slate-900 block">
-                          {formatBDT(item.price * item.quantity)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 
@@ -261,9 +266,14 @@ export default function OrderDetailsPage() {
                   <span>Subtotal</span>
                   <span className="font-bold text-slate-800">
                     {formatBDT(
-                      order.subtotal ||
-                        order.items?.reduce((sum, it) => sum + it.price * it.quantity, 0) ||
-                        order.total_amount
+                      order.subtotal ??
+                        order.items?.reduce(
+                          (sum, it) => sum + (it.price ?? it.unit_price ?? 0) * (it.quantity || 1),
+                          0
+                        ) ??
+                        order.total_amount ??
+                        order.total ??
+                        0
                     )}
                   </span>
                 </div>
@@ -278,14 +288,14 @@ export default function OrderDetailsPage() {
                 <div className="flex justify-between text-slate-600">
                   <span>Delivery Fee</span>
                   <span className="font-bold text-slate-800">
-                    {order.shipping_charge === 0 ? "৳0 (Free Delivery)" : formatBDT(order.shipping_charge || 0)}
+                    {formatBDT(order.shipping_fee ?? order.shipping_charge ?? 0)}
                   </span>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex justify-between items-baseline text-sm">
                   <span className="font-extrabold text-slate-900">Total Paid / Payable</span>
                   <span className="text-lg font-black text-brand-primary">
-                    {formatBDT(order.total_amount)}
+                    {formatBDT(order.total_amount ?? order.total ?? 0)}
                   </span>
                 </div>
               </div>

@@ -133,8 +133,11 @@ export interface DbProduct {
 export interface DbOrderItem {
   product_id: string | number;
   variation_id?: string | number | null;
-  name: string;
-  price: number;
+  name?: string;
+  product_name?: string;
+  price?: number;
+  unit_price?: number;
+  line_total?: number;
   quantity: number;
   image_url?: string;
   color?: string;
@@ -155,6 +158,7 @@ export type PaymentStatus = 'unpaid' | 'paid' | 'refunded' | 'pending';
 
 export interface DbOrder {
   id: string | number;
+  order_number?: string;
   user_id?: string | null;
   customer_name: string;
   customer_email?: string | null;
@@ -165,13 +169,16 @@ export interface DbOrder {
     notes?: string;
   };
   items: DbOrderItem[];
-  total_amount: number;
+  total_amount?: number;
+  total?: number;
   discount_amount?: number;
+  shipping_fee?: number;
   shipping_charge?: number;
   subtotal?: number;
   payment_method: string;
   payment_status: PaymentStatus;
   status: OrderStatus;
+  coupon_code?: string | null;
   tracking_number?: string;
   courier_name?: string;
   estimated_delivery?: string;

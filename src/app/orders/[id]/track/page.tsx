@@ -384,39 +384,44 @@ export default function OrderTrackingPage() {
               <span>Package Contents ({order.items?.length || 0})</span>
             </span>
             <span className="text-xs font-bold text-brand-primary">
-              Total: {formatBDT(order.total_amount)}
+              Total: {formatBDT(order.total_amount ?? order.total ?? 0)}
             </span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {order.items &&
-              order.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"
-                >
-                  <div className="relative w-12 h-12 bg-white rounded-xl overflow-hidden border border-slate-200 shrink-0">
-                    {item.image_url ? (
-                      <Image
-                        src={item.image_url}
-                        alt={item.name}
-                        fill
-                        className="object-contain p-1"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-300">
-                        <Package className="w-5 h-5" />
-                      </div>
-                    )}
+              order.items.map((item, idx) => {
+                const itemName = item.name || item.product_name || "Purchased Product";
+                const itemPrice = item.price ?? item.unit_price ?? 0;
+                const itemQty = item.quantity || 1;
+                return (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3"
+                  >
+                    <div className="relative w-12 h-12 bg-white rounded-xl overflow-hidden border border-slate-200 shrink-0">
+                      {item.image_url ? (
+                        <Image
+                          src={item.image_url}
+                          alt={itemName}
+                          fill
+                          className="object-contain p-1"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                          <Package className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 text-xs">
+                      <p className="font-bold text-slate-900 truncate">{itemName}</p>
+                      <span className="text-slate-500">
+                        Qty: <strong>{itemQty}</strong> × {formatBDT(itemPrice)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="min-w-0 text-xs">
-                    <p className="font-bold text-slate-900 truncate">{item.name}</p>
-                    <span className="text-slate-500">
-                      Qty: <strong>{item.quantity}</strong> × {formatBDT(item.price)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
 

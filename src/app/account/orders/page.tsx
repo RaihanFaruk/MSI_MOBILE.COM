@@ -155,7 +155,7 @@ export default function AccountOrdersPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-sm font-extrabold text-slate-900">
-                        Order #{order.id}
+                        {order.order_number ? order.order_number : `Order #${order.id}`}
                       </span>
                       <span className="text-xs text-slate-400">•</span>
                       <span className="text-xs text-slate-500">{orderDate}</span>
@@ -176,32 +176,36 @@ export default function AccountOrdersPage() {
                     {/* Item Thumbnails & Names */}
                     <div className="flex items-center gap-3 overflow-x-auto py-1">
                       {order.items &&
-                        order.items.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-2.5 shrink-0">
-                            <div className="relative w-12 h-12 bg-slate-50 rounded-xl overflow-hidden border border-slate-200 shrink-0">
-                              {item.image_url ? (
-                                <Image
-                                  src={item.image_url}
-                                  alt={item.name}
-                                  fill
-                                  className="object-contain p-1"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                  <Package className="w-5 h-5" />
-                                </div>
-                              )}
+                        order.items.slice(0, 3).map((item, idx) => {
+                          const itemName = item.name || item.product_name || "Purchased Product";
+                          const itemPrice = item.price ?? item.unit_price ?? 0;
+                          return (
+                            <div key={idx} className="flex items-center gap-2.5 shrink-0">
+                              <div className="relative w-12 h-12 bg-slate-50 rounded-xl overflow-hidden border border-slate-200 shrink-0">
+                                {item.image_url ? (
+                                  <Image
+                                    src={item.image_url}
+                                    alt={itemName}
+                                    fill
+                                    className="object-contain p-1"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                    <Package className="w-5 h-5" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-xs">
+                                <p className="font-bold text-slate-800 truncate max-w-44">
+                                  {itemName}
+                                </p>
+                                <span className="text-[11px] text-slate-400">
+                                  Qty: {item.quantity || 1} × {formatBDT(itemPrice)}
+                                </span>
+                              </div>
                             </div>
-                            <div className="text-xs">
-                              <p className="font-bold text-slate-800 truncate max-w-44">
-                                {item.name}
-                              </p>
-                              <span className="text-[11px] text-slate-400">
-                                Qty: {item.quantity} × {formatBDT(item.price)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
 
                       {order.items && order.items.length > 3 && (
                         <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg shrink-0">
@@ -217,7 +221,7 @@ export default function AccountOrdersPage() {
                           Total Amount
                         </span>
                         <span className="text-base font-extrabold text-brand-primary">
-                          {formatBDT(order.total_amount)}
+                          {formatBDT(order.total_amount ?? order.total ?? 0)}
                         </span>
                       </div>
 
