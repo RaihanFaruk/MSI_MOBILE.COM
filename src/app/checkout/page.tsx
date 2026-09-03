@@ -133,6 +133,13 @@ export default function CheckoutPage() {
 
       // Order created successfully!
       clearCart();
+
+      // If online payment (SSLCommerz / bKash / Card / Nagad), redirect to secure gateway page
+      if (data.requires_payment_redirect && data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
+
       router.push(`/checkout/success?orderId=${data.order_id}&method=${paymentMethod}`);
     } catch (err: unknown) {
       console.error("Order submission error:", err);

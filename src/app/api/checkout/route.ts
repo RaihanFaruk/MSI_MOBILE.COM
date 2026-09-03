@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { initiateOnlinePayment } from "@/lib/payment-gateway";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 interface CheckoutItemPayload {
   product_id: number;
@@ -189,16 +191,65 @@ export async function POST(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq("id", user_id);
-      } catch (e) {
-        console.log("Profile address auto-save note:", e);
+      } catch {
+        // Fallback for profile address update
       }
+    }
+
+    const selectedMethod = payment_method || "COD";
+    const isOnlinePayment = selectedMethod !== "COD";
+
+    // 4. If Online Payment (bKash / Nagad / Card / SSLCommerz), initiate gateway session
+    if (isOnlinePayment) {
+      const paymentInit = await initiateOnlinePayment({
+        order_id: rpcResult.order_id,
+        order_number: rpcResult.order_number,
+        amount: rpcResult.total,
+        customer_name: customer_name.trim(),
+        customer_email: customer_email?.trim(),
+        customer_phone: customer_phone.trim(),
+        shipping_address: shipping_address.address,
+        district: shipping_address.district,
+        payment_method: selectedMethod,
+      });
+
+      if (paymentInit.success && paymentInit.gateway_url) {
+        return NextResponse.json({
+          success: true,
+          requires_payment_redirect: true,
+          redirect_url: paymentInit.gateway_url,
+          order_id: rpcResult.order_id,
+          order_summary: rpcResult,
+          payment_method: selectedMethod,
+          message: "Redirecting to SSLCommerz Secure Payment...",
+        });
+      }
+    }
+
+    // 5. If Cash on Delivery, send confirmation email immediately
+    if (customer_email) {
+      sendOrderConfirmationEmail({
+        order_number: rpcResult.order_number,
+        customer_name: customer_name.trim(),
+        customer_email: customer_email.trim(),
+        customer_phone: customer_phone.trim(),
+        shipping_address: `${shipping_address.address}, ${shipping_address.district}`,
+        total_amount: rpcResult.total,
+        payment_method: "Cash on Delivery (COD)",
+        items: items.map((it: CheckoutItemPayload & { name?: string; product_name?: string }) => ({
+          name: it.name || it.product_name || "Device Item",
+          quantity: it.quantity || 1,
+          price: it.client_unit_price || 0,
+        })),
+      }).catch((e) => console.error("[CheckoutEmail] Note:", e));
     }
 
     return NextResponse.json({
       success: true,
+      requires_payment_redirect: false,
       order_id: rpcResult.order_id,
       order_summary: rpcResult,
-      payment_method: payment_method || "COD",
+      payment_method: selectedMethod,
       message: "Order placed successfully!",
     });
   } catch (err: unknown) {
