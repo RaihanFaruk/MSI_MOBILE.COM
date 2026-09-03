@@ -147,15 +147,28 @@ export const Footer: React.FC = () => {
             <ul className="space-y-3 text-xs sm:text-sm text-slate-400">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-brand-accent shrink-0 mt-0.5" />
-                <span>Level 4, Block B, Jamuna Future Park / Bashundhara City, Dhaka, Bangladesh</span>
+                <span>4th Floor, Sena Shopping Complex, Savar, Dhaka, Bangladesh</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Hotline: <strong className="text-white">+880 1999-MSIMOB</strong></span>
+                <span>
+                  Hotline:{" "}
+                  <a
+                    href="tel:+8801999600222"
+                    className="text-white hover:text-emerald-400 font-bold transition-colors"
+                  >
+                    +880 1999-600222
+                  </a>
+                </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>support@msimobile.com.bd</span>
+                <a
+                  href="mailto:support@msimobile.com.bd"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  support@msimobile.com.bd
+                </a>
               </li>
               <li className="flex items-center gap-2.5 text-[11px] text-slate-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />

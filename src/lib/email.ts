@@ -88,7 +88,7 @@ export function generateOrderConfirmationHtml(data: OrderEmailData): string {
           <!-- Footer -->
           <tr>
             <td style="background-color: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px;">
-              <p style="margin: 0;">সাহায্যের জন্য কল করুন: <strong>+880 1999-MSIMOB</strong> | moyazzembintelamiya@gmail.com</p>
+              <p style="margin: 0;">সাহায্যের জন্য কল করুন: <strong>+880 1999-600222</strong> | support@msimobile.com.bd</p>
               <p style="margin: 6px 0 0 0;">© ${new Date().getFullYear()} MSI MOBILE.COM Bangladesh.</p>
             </td>
           </tr>

@@ -95,8 +95,13 @@ export default function ContactPage() {
                 <Phone className="w-5 h-5" />
               </div>
               <h2 className="text-sm font-bold text-slate-900">Phone Hotline</h2>
-              <p className="text-xs text-slate-600 font-medium">+880 1999-MSIMOB</p>
-              <p className="text-[11px] text-slate-400">+880 1711-223344 (WhatsApp)</p>
+              <a
+                href="tel:+8801999600222"
+                className="text-xs text-slate-700 hover:text-brand-primary font-bold block transition-colors"
+              >
+                +880 1999-600222
+              </a>
+              <p className="text-[11px] text-slate-400">Official Customer Support</p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-2">
@@ -104,7 +109,12 @@ export default function ContactPage() {
                 <Mail className="w-5 h-5" />
               </div>
               <h2 className="text-sm font-bold text-slate-900">Email Support</h2>
-              <p className="text-xs text-slate-600 font-medium">support@msimobile.com.bd</p>
+              <a
+                href="mailto:support@msimobile.com.bd"
+                className="text-xs text-slate-600 hover:text-emerald-600 font-medium block transition-colors"
+              >
+                support@msimobile.com.bd
+              </a>
               <p className="text-[11px] text-slate-400">sales@msimobile.com.bd</p>
             </div>
 
@@ -113,8 +123,8 @@ export default function ContactPage() {
                 <MapPin className="w-5 h-5" />
               </div>
               <h2 className="text-sm font-bold text-slate-900">Physical Store</h2>
-              <p className="text-xs text-slate-600 font-medium">Shop #402, Level 4, Block B</p>
-              <p className="text-[11px] text-slate-400">Jamuna Future Park, Kuril, Dhaka</p>
+              <p className="text-xs text-slate-600 font-medium">4th Floor, Sena Shopping Complex</p>
+              <p className="text-[11px] text-slate-400">Savar, Dhaka, Bangladesh</p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-2">
@@ -269,7 +279,7 @@ export default function ContactPage() {
                 <div className="flex items-center justify-between px-2 pt-1">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-brand-primary" />
-                    <span>Store Location (Jamuna Future Park)</span>
+                    <span>Store Location (Sena Shopping Complex)</span>
                   </h3>
                   <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                     Open Today
@@ -278,7 +288,7 @@ export default function ContactPage() {
                 <div className="w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-slate-200 relative">
                   <iframe
                     title="MSI MOBILE.COM Store Location"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3650.0980922849187!2d90.42302307593673!3d23.815110686292524!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c64c103a8093%3A0xd660a4f50365294a!2sJamuna%20Future%20Park!5e0!3m2!1sen!2sbd!4v1710000000000!5m2!1sen!2sbd"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.749553753232!2d90.25866767593815!3d23.86300448453186!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755ebd85b2e9bc3%3A0xe54d7e638b97d197!2sSena%20Shopping%20Complex!5e0!3m2!1sen!2sbd!4v1710000000000!5m2!1sen!2sbd"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -288,7 +298,7 @@ export default function ContactPage() {
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 px-2 pb-1">
-                  📍 Ka-244, Kuril, Pragati Sarani, Dhaka-1229. Escalator/Lift available to Level 4 Block B.
+                  📍 4th Floor, Sena Shopping Complex, Savar, Dhaka, Bangladesh.
                 </p>
               </div>
 

@@ -50,8 +50,38 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ElectronicsStore",
+    name: "MSI MOBILE.COM",
+    url: "https://msi-mobile-com.vercel.app",
+    telephone: "+8801999600222",
+    priceRange: "৳৳৳",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "4th Floor, Sena Shopping Complex",
+      addressLocality: "Savar",
+      addressRegion: "Dhaka",
+      addressCountry: "BD",
+    },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "09:00",
+        closes: "22:00",
+      },
+    ],
+  };
+
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="antialiased font-sans bg-bg-white text-text-primary selection:bg-brand-primary selection:text-white min-h-screen flex flex-col justify-between">
         <AuthProvider>
           <StoreProvider>

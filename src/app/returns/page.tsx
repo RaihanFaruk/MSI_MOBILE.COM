@@ -68,7 +68,7 @@ export default function ReturnsPolicyPage() {
                 <span>৪. রিটার্ন বা ওয়ারেন্টি ক্লেইম করার নিয়ম</span>
               </h2>
               <p className="text-slate-600 text-xs sm:text-sm">
-                রিটার্ন বা ওয়ারেন্টি সার্ভিসের জন্য আপনার অর্ডার নম্বর ও সমস্যার বিবরণ সহ আমাদের হেল্পলাইন <strong>+880 1999-MSIMOB</strong> অথবা <strong>support@msimobile.com.bd</strong>-এ যোগাযোগ করুন।
+                রিটার্ন বা ওয়ারেন্টি সার্ভিসের জন্য আপনার অর্ডার নম্বর ও সমস্যার বিবরণ সহ আমাদের হেল্পলাইন <a href="tel:+8801999600222" className="text-brand-primary font-bold hover:underline">+880 1999-600222</a> অথবা <a href="mailto:support@msimobile.com.bd" className="text-brand-primary font-bold hover:underline">support@msimobile.com.bd</a>-এ যোগাযোগ করুন।
               </p>
             </section>
           </div>

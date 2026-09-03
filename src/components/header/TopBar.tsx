@@ -18,12 +18,12 @@ export const TopBar: React.FC = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer">
               <MapPin className="w-3.5 h-3.5 text-brand-accent" />
-              <span>Dhaka, Bangladesh</span>
+              <span>Savar, Dhaka, BD</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer">
+            <a href="tel:+8801999600222" className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer">
               <Phone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Hotline: <strong className="text-white">+880 1999-MSIMOB</strong> (9AM - 10PM)</span>
-            </div>
+              <span>Hotline: <strong className="text-white">+880 1999-600222</strong> (9AM - 10PM)</span>
+            </a>
           </div>
 
           {/* Right: Social Media & Guarantee */}
@@ -65,7 +65,7 @@ export const TopBar: React.FC = () => {
       <div className="md:hidden bg-navy-dark text-slate-300 text-[11px] py-1.5 px-4 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center gap-1">
           <MapPin className="w-3 h-3 text-brand-accent" />
-          <span>Dhaka, BD</span>
+          <span>Savar, Dhaka</span>
         </div>
         {user ? (
           <Link href="/account" className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-bold truncate max-w-[180px]">
@@ -73,10 +73,10 @@ export const TopBar: React.FC = () => {
             <span>Hi, {profile?.full_name?.split(" ")[0] || user.email?.split("@")[0]}</span>
           </Link>
         ) : (
-          <div className="flex items-center gap-1">
+          <a href="tel:+8801999600222" className="flex items-center gap-1">
             <Phone className="w-3 h-3 text-emerald-400" />
-            <span>Hotline: <strong className="text-white">+880 1999-MSIMOB</strong></span>
-          </div>
+            <span>Hotline: <strong className="text-white">+880 1999-600222</strong></span>
+          </a>
         )}
       </div>
     </>

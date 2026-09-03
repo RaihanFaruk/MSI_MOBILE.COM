@@ -271,11 +271,11 @@ export const MobileDrawer: React.FC = () => {
             )}
 
             <a
-              href="tel:+8801700000000"
+              href="tel:+8801999600222"
               className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
             >
               <Phone className="w-4 h-4 text-emerald-600" />
-              <span>Customer Helpline: 01700-000000</span>
+              <span>Customer Helpline: +880 1999-600222</span>
             </a>
           </div>
         </div>
