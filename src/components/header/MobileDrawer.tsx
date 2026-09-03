@@ -94,8 +94,8 @@ export const MobileDrawer: React.FC = () => {
           }));
           setCategories(mapped);
         }
-      } catch (e) {
-        console.log("Mobile drawer category fetch note:", e);
+      } catch {
+        // Fallback to static category navigation
       }
     }
 

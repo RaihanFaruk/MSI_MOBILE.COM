@@ -79,6 +79,7 @@ export const Header: React.FC = () => {
             {/* Category Dropdown */}
             <div className="relative border-r border-slate-200 hidden xl:flex items-center bg-slate-100/70">
               <select
+                aria-label="Filter by product category"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="appearance-none bg-transparent py-2.5 pl-3 pr-8 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
@@ -97,6 +98,7 @@ export const Header: React.FC = () => {
               <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
               <input
                 type="text"
+                aria-label="Search for products, brands and accessories"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for smartphones, laptops, audio, accessories..."
@@ -105,8 +107,10 @@ export const Header: React.FC = () => {
               {searchQuery && (
                 <button
                   type="button"
+                  aria-label="Clear search input"
+                  title="Clear search"
                   onClick={() => setSearchQuery("")}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -116,7 +120,9 @@ export const Header: React.FC = () => {
             {/* Blue Search Button */}
             <button
               type="submit"
-              className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white text-xs sm:text-sm font-bold px-6 py-2.5 transition-all duration-150 flex items-center gap-1.5"
+              aria-label="Execute search"
+              title="Search"
+              className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white text-xs sm:text-sm font-bold px-6 py-2.5 transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
             >
               <span>Search</span>
             </button>
@@ -258,6 +264,7 @@ export const Header: React.FC = () => {
           <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
           <input
             type="text"
+            aria-label="Search mobile catalog"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="🔍 Search tech and accessories..."
@@ -266,8 +273,10 @@ export const Header: React.FC = () => {
           {searchQuery && (
             <button
               type="button"
+              aria-label="Clear mobile search"
+              title="Clear search"
               onClick={() => setSearchQuery("")}
-              className="text-slate-400 hover:text-slate-600 p-1"
+              className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

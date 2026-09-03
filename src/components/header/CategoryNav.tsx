@@ -84,8 +84,8 @@ export const CategoryNav: React.FC = () => {
           }));
           setCategories(mapped);
         }
-      } catch (e) {
-        console.log("Category nav fetch note:", e);
+      } catch {
+        // Fallback to static category icons
       }
     }
 

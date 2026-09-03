@@ -174,7 +174,7 @@ export default function OrderTrackingPage() {
             <Truck className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Track Order #{orderId}</h1>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Track Order #{orderId}</h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
               For privacy protection, please enter the mobile number used when placing this order.
             </p>
@@ -185,6 +185,7 @@ export default function OrderTrackingPage() {
               <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="tel"
+                aria-label="Customer phone number used during checkout"
                 required
                 value={guestPhone}
                 onChange={(e) => setGuestPhone(e.target.value)}

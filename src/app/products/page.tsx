@@ -115,8 +115,8 @@ function ProductsCatalogContent() {
         if (catData && catData.length > 0) {
           setCategoriesList(catData.map((c) => ({ id: String(c.id), name: c.name, slug: c.slug })));
         }
-      } catch (e) {
-        console.log("Categories load note:", e);
+      } catch {
+        // Fallback to static category filters
       }
     }
     loadCategories();
@@ -278,6 +278,7 @@ function ProductsCatalogContent() {
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
+              aria-label="Search catalog products by model, brand, or specs"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -288,8 +289,11 @@ function ProductsCatalogContent() {
             />
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Clear catalog search"
+                title="Clear search"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -437,6 +441,7 @@ function ProductsCatalogContent() {
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <input
                   type="number"
+                  aria-label="Minimum price in Bangladeshi Taka"
                   placeholder="Min ৳"
                   value={minPrice}
                   onChange={(e) => {
@@ -447,6 +452,7 @@ function ProductsCatalogContent() {
                 />
                 <input
                   type="number"
+                  aria-label="Maximum price in Bangladeshi Taka"
                   placeholder="Max ৳"
                   value={maxPrice}
                   onChange={(e) => {

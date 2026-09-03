@@ -20,9 +20,29 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "MSI MOBILE.COM — Premium Tech, Smartphones & Laptops in Bangladesh",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://msi-mobile-com.vercel.app"),
+  title: {
+    default: "MSI MOBILE.COM — Premium Tech, Smartphones & Laptops in Bangladesh",
+    template: "%s | MSI MOBILE.COM",
+  },
   description: "Official online store for authentic smartphones, gaming laptops, earbuds, smartwatches, and premium gadgets in Bangladesh with nationwide fast delivery and official warranty.",
   keywords: "MSI Mobile, smartphones Bangladesh, laptops, gadgets, Apple iPhone, Samsung Galaxy, gaming laptops, genuine tech Dhaka",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "MSI MOBILE.COM — Premium Tech, Smartphones & Laptops in Bangladesh",
+    description: "Official online store for authentic smartphones, gaming laptops, and accessories in Bangladesh.",
+    url: "https://msi-mobile-com.vercel.app",
+    siteName: "MSI MOBILE.COM",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MSI MOBILE.COM — Premium Tech in Bangladesh",
+    description: "Official store for authentic smartphones, laptops, and gadgets in Bangladesh.",
+  },
 };
 
 export default function RootLayout({

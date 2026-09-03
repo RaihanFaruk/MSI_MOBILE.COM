@@ -60,8 +60,8 @@ export const Testimonials: React.FC = () => {
           }));
           setTestimonials(mapped);
         }
-      } catch (e) {
-        console.log("Reviews load note:", e);
+      } catch {
+        // Use default testimonials on network fallback
       }
     }
 

@@ -73,8 +73,8 @@ export default function AccountPage() {
           const total = data.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
           setSpentTotal(total);
         }
-      } catch (e) {
-        console.log("Stats fetch note:", e);
+      } catch {
+        // Fallback for user stats calculation
       } finally {
         setOrdersLoading(false);
       }

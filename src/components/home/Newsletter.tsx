@@ -47,6 +47,7 @@ export const Newsletter: React.FC = () => {
           <div className="relative flex-1">
             <input
               type="email"
+              aria-label="Email address for discounts and tech newsletter"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address..."
@@ -57,7 +58,8 @@ export const Newsletter: React.FC = () => {
 
           <button
             type="submit"
-            className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all shrink-0"
+            aria-label="Subscribe to newsletter"
+            className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all shrink-0 cursor-pointer"
           >
             {subscribed ? (
               <>

@@ -157,7 +157,9 @@ export default function CartPage() {
                         <div className="flex items-center border border-slate-200 bg-slate-50 rounded-xl p-1">
                           <button
                             onClick={() => updateCartQuantity(itemKey, -1)}
-                            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-white transition-colors"
+                            aria-label={`Decrease quantity for ${item.product.name}`}
+                            title="Decrease quantity"
+                            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-white transition-colors cursor-pointer"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
@@ -166,7 +168,9 @@ export default function CartPage() {
                           </span>
                           <button
                             onClick={() => updateCartQuantity(itemKey, 1)}
-                            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-white transition-colors"
+                            aria-label={`Increase quantity for ${item.product.name}`}
+                            title="Increase quantity"
+                            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-white transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
@@ -185,8 +189,9 @@ export default function CartPage() {
                         {/* Remove Button */}
                         <button
                           onClick={() => removeFromCart(itemKey)}
-                          className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
+                          aria-label={`Remove ${item.product.name} from cart`}
                           title="Remove item"
+                          className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -231,6 +236,7 @@ export default function CartPage() {
                     <div className="flex gap-2">
                       <input
                         type="text"
+                        aria-label="Enter promotional or discount coupon code"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                         placeholder="Try coupon 'MSIFIRST'"
@@ -238,8 +244,9 @@ export default function CartPage() {
                       />
                       <button
                         type="submit"
+                        aria-label="Apply discount coupon"
                         disabled={couponLoading || !couponInput.trim()}
-                        className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition-all flex items-center gap-1.5"
+                        className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         {couponLoading ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />

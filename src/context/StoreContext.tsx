@@ -87,8 +87,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (savedCoupon) {
         setAppliedCoupon(JSON.parse(savedCoupon));
       }
-    } catch (e) {
-      console.log("Storage load note:", e);
+    } catch {
+      // LocalStorage unavailable or parsing fallback
     } finally {
       setIsLoaded(true);
     }
@@ -99,8 +99,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!isLoaded) return;
     try {
       localStorage.setItem("msi_cart", JSON.stringify(cart));
-    } catch (e) {
-      console.log("Cart save error:", e);
+    } catch {
+      // Ignore quota exceeded errors
     }
   }, [cart, isLoaded]);
 
@@ -108,8 +108,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!isLoaded) return;
     try {
       localStorage.setItem("msi_wishlist", JSON.stringify(wishlist));
-    } catch (e) {
-      console.log("Wishlist save error:", e);
+    } catch {
+      // Ignore quota exceeded errors
     }
   }, [wishlist, isLoaded]);
 
@@ -121,8 +121,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       } else {
         localStorage.removeItem("msi_coupon");
       }
-    } catch (e) {
-      console.log("Coupon storage note:", e);
+    } catch {
+      // Ignore storage errors
     }
   }, [appliedCoupon, isLoaded]);
 
@@ -252,8 +252,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       } else {
         return { success: false, message: data.message || "Invalid coupon code." };
       }
-    } catch (e) {
-      console.log("Coupon apply note:", e);
+    } catch {
       return { success: false, message: "Failed to validate coupon." };
     }
   };

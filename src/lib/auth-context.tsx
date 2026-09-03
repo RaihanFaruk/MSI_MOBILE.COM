@@ -127,8 +127,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: fullName,
           role: "customer",
         });
-      } catch (e) {
-        console.log("Auto-profile insert note:", e);
+      } catch {
+        // Fallback for profile creation
       }
     }
 
