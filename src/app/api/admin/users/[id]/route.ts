@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
 
 export async function DELETE(
   request: Request,
@@ -15,50 +14,7 @@ export async function DELETE(
       );
     }
 
-    // 1. Verify caller authentication and admin role
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized: Missing authentication token." },
-        { status: 401 }
-      );
-    }
-
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData?.user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized: Invalid or expired session." },
-        { status: 401 }
-      );
-    }
-
-    const callerId = userData.user.id;
-
-    // Check if caller has admin role in profiles table
-    const { data: callerProfile, error: profError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", callerId)
-      .single();
-
-    if (profError || callerProfile?.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "Forbidden: Administrator permissions required." },
-        { status: 403 }
-      );
-    }
-
-    // Safety: Prevent admin from deleting their own currently logged-in account
-    if (callerId === targetUserId) {
-      return NextResponse.json(
-        { success: false, message: "Safety restriction: You cannot delete your own administrator account." },
-        { status: 400 }
-      );
-    }
-
-    // 2. Check for SUPABASE_SERVICE_ROLE_KEY
+    // 1. Check for SUPABASE_SERVICE_ROLE_KEY
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -74,7 +30,7 @@ export async function DELETE(
       );
     }
 
-    // 3. Initialize Supabase Admin client with service_role key
+    // 2. Initialize Supabase Admin client with service_role secret key
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -82,7 +38,50 @@ export async function DELETE(
       },
     });
 
-    // 4. Delete user from auth.users
+    // 3. Extract and verify requester's Bearer JWT session token
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace(/^Bearer\s+/i, "");
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Missing authentication token." },
+        { status: 401 }
+      );
+    }
+
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Invalid or expired administrator session." },
+        { status: 401 }
+      );
+    }
+
+    const callerId = userData.user.id;
+
+    // 4. Verify admin role using service-role client (bypasses RLS blocks on server)
+    const { data: callerProfile, error: profError } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", callerId)
+      .single();
+
+    if (profError || callerProfile?.role !== "admin") {
+      return NextResponse.json(
+        { success: false, message: "Forbidden: Administrator permissions required." },
+        { status: 403 }
+      );
+    }
+
+    // 5. Safety: Prevent admin from deleting their own currently logged-in account
+    if (callerId === targetUserId) {
+      return NextResponse.json(
+        { success: false, message: "Safety restriction: You cannot delete your own administrator account." },
+        { status: 400 }
+      );
+    }
+
+    // 6. Delete user permanently from Supabase Auth
     const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
 
     if (deleteAuthError) {
@@ -93,7 +92,7 @@ export async function DELETE(
       );
     }
 
-    // 5. Ensure profile is cleaned up from public.profiles
+    // 7. Ensure profile is cleaned up from public.profiles
     await supabaseAdmin.from("profiles").delete().eq("id", targetUserId);
 
     return NextResponse.json({

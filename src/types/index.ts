@@ -66,6 +66,16 @@ export interface UserProfile {
   created_at?: string;
 }
 
+export interface SavedAddress {
+  id: string;
+  title: string;
+  recipient_name: string;
+  phone: string;
+  district: string;
+  street_address: string;
+  is_default?: boolean;
+}
+
 export interface DbCategory {
   id: string | number;
   name: string;
