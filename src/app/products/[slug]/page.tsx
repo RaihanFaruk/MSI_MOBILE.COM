@@ -170,6 +170,13 @@ export default async function ProductPage({ params }: Props) {
     console.log("Related products fallback:", e);
   }
 
+  const sanitizedProduct = {
+    ...product,
+    reviews: (product.reviews || []).filter(
+      (r: { is_approved?: boolean }) => r.is_approved !== false
+    ),
+  };
+
   return (
     <>
       {/* Schema.org Structured Data */}
@@ -178,7 +185,7 @@ export default async function ProductPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ProductDetailsClient
-        product={product}
+        product={sanitizedProduct}
         relatedProducts={relatedProducts}
       />
     </>

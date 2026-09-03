@@ -44,8 +44,10 @@ export async function POST(req: NextRequest) {
         {
           product_id,
           user_id: user_id || null,
+          user_name: user_name || "Verified Customer",
           rating: numRating,
           comment: cleanComment,
+          is_approved: true,
         },
       ])
       .select("*")

@@ -19,6 +19,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Tag,
+  Star,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Categories", href: "/admin/categories", icon: Layers },
     { label: "Coupons", href: "/admin/coupons", icon: Tag },
     { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
+    { label: "Reviews", href: "/admin/reviews", icon: Star },
     { label: "Users", href: "/admin/users", icon: Users },
   ];
 
