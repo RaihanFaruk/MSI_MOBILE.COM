@@ -153,7 +153,7 @@ export default function AdminEditProductPage() {
     return (
       <div className="py-20 text-center space-y-3">
         <Loader2 className="w-8 h-8 animate-spin mx-auto text-brand-primary" />
-        <p className="text-xs text-slate-400">Loading product details from Supabase...</p>
+        <p className="text-xs text-slate-400">Loading product details...</p>
       </div>
     );
   }

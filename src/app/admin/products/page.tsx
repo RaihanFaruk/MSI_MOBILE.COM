@@ -158,7 +158,7 @@ export default function AdminProductsPage() {
             Products Catalog
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage inventory, pricing, specifications & stock in Supabase
+            Manage inventory, pricing, specifications & stock
           </p>
         </div>
 
@@ -248,7 +248,7 @@ export default function AdminProductsPage() {
         {loading ? (
           <div className="text-center py-16 text-slate-400 text-xs space-y-2">
             <Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-primary" />
-            <p>Loading products from Supabase...</p>
+            <p>Loading products catalog...</p>
           </div>
         ) : paginatedProducts.length === 0 ? (
           <div className="text-center py-16 space-y-3 px-4">
@@ -261,7 +261,7 @@ export default function AdminProductsPage() {
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
               {searchQuery
                 ? "Try adjusting your search filters to find what you're looking for."
-                : "Get started by adding your first smartphone, laptop, or gadget into the Supabase database."}
+                : "Get started by adding your first smartphone, laptop, or gadget into the store catalog."}
             </p>
             {!searchQuery && (
               <Link
@@ -416,7 +416,7 @@ export default function AdminProductsPage() {
             <div>
               <h3 className="text-base font-bold text-white">Delete this product?</h3>
               <p className="text-xs text-slate-400 mt-1">
-                This action will permanently delete the item from your Supabase products table.
+                This action will permanently delete the item from your store inventory.
               </p>
             </div>
             <div className="flex items-center gap-3 pt-2">

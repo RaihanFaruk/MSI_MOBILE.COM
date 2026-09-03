@@ -122,7 +122,7 @@ export default function AdminNewProductPage() {
     } catch (err: unknown) {
       console.error("Save product error:", err);
       const postgrestErr = err as { message?: string; code?: string; details?: string };
-      const msg = postgrestErr?.message || (err instanceof Error ? err.message : "Failed to create product in Supabase database.");
+      const msg = postgrestErr?.message || (err instanceof Error ? err.message : "Failed to create product in store catalog.");
       setErrorMsg(msg);
       setLoading(false);
     }
@@ -144,7 +144,7 @@ export default function AdminNewProductPage() {
               Add New Product
             </h1>
             <p className="text-xs text-slate-400">
-              Create a new tech item in your Supabase database catalog
+              Create a new tech item in your store catalog
             </p>
           </div>
         </div>
@@ -386,7 +386,7 @@ export default function AdminNewProductPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Saving to Supabase...</span>
+                    <span>Saving Product...</span>
                   </>
                 ) : (
                   <>

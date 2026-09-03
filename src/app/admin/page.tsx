@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
       }
     } catch (err: unknown) {
       console.error("Dashboard fetch error:", err);
-      setErrorMsg("Failed to connect to one or more Supabase tables. Ensure tables are created.");
+      setErrorMsg("Failed to load dashboard statistics. Please try refreshing the page.");
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export default function AdminDashboardPage() {
             Dashboard Overview
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real-time analytics and inventory status from your Supabase PostgreSQL database
+            Real-time analytics and inventory status for MSI MOBILE.COM
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export default function AdminDashboardPage() {
             </h3>
             <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold mt-1">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>In Supabase Database</span>
+              <span>Active Products</span>
             </div>
           </div>
         </div>
@@ -258,9 +258,9 @@ export default function AdminDashboardPage() {
         ) : recentProducts.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl space-y-3">
             <Package className="w-12 h-12 text-slate-700 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-300">No products found in `products` table</h3>
+            <h3 className="text-sm font-bold text-slate-300">No products found in catalog</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Your Supabase products table is currently empty. Click the button below to add your first smartphone, laptop, or gadget!
+              Your store product catalog is currently empty. Click the button below to add your first smartphone, laptop, or gadget!
             </p>
             <Link
               href="/admin/products/new"

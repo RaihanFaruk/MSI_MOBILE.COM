@@ -7,7 +7,7 @@ export default async function TestDB() {
 
   return (
     <div style={{ padding: 40, fontFamily: 'sans-serif' }}>
-      <h1>Supabase Connection Test</h1>
+      <h1>Database Connection Test</h1>
       {error && (
         <div style={{ padding: '12px 16px', background: '#fee2e2', color: '#dc2626', borderRadius: 8, margin: '16px 0' }}>
           <strong>Error:</strong> {error.message}

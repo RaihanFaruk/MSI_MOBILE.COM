@@ -74,8 +74,7 @@ export default function AdminOrdersPage() {
       setOrders(data || []);
     } catch (err: unknown) {
       console.error("Orders fetch error:", err);
-      const msg = err instanceof Error ? err.message : "Failed to load orders from Supabase.";
-      showToast(msg, "error");
+      showToast("Failed to load customer orders. Please try again.", "error");
     } finally {
       setLoading(false);
     }

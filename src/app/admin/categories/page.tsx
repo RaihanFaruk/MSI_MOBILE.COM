@@ -253,7 +253,7 @@ export default function AdminCategoriesPage() {
         {loading ? (
           <div className="text-center py-16 text-slate-400 text-xs space-y-2">
             <Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-primary" />
-            <p>Loading categories from Supabase...</p>
+            <p>Loading product categories...</p>
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="text-center py-16 space-y-3 px-4">
