@@ -140,7 +140,8 @@ export default function CheckoutPage() {
         return;
       }
 
-      router.push(`/checkout/success?orderId=${data.order_id}&method=${paymentMethod}`);
+      const orderNum = data.order_number || data.order_id;
+      router.push(`/checkout/success?orderId=${data.order_id}&orderNumber=${encodeURIComponent(orderNum)}&method=${paymentMethod}`);
     } catch (err: unknown) {
       console.error("Order submission error:", err);
       const msg = err instanceof Error ? err.message : "Failed to connect to checkout service.";
@@ -480,7 +481,7 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-brand-primary hover:bg-brand-primary-dark active:scale-98 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60"
+                    className="w-full bg-brand-primary hover:bg-brand-primary-dark active:scale-98 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all min-h-[48px] disabled:opacity-60 cursor-pointer"
                   >
                     {submitting ? (
                       <>

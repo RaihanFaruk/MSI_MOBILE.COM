@@ -187,18 +187,27 @@ function ProductsCatalogContent() {
               ? p.images[0]
               : "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80";
 
+            const regularPrice = Number(p.price) || 0;
+            const discountPrice = p.discount_price ? Number(p.discount_price) : null;
+            const hasValidDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+            const sellingPrice = hasValidDiscount ? discountPrice : regularPrice;
+            const originalPrice = hasValidDiscount ? regularPrice : undefined;
+            const stock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+
             return {
               id: String(p.id),
+              slug: p.slug,
               name: p.name,
               brand: p.brand,
               category: p.categories?.name || "Smartphones",
               image: firstImg,
-              price: Number(p.price),
-              originalPrice: p.discount_price ? Number(p.discount_price) : undefined,
+              price: sellingPrice,
+              originalPrice: originalPrice,
+              stock: stock,
               rating: p.rating ? Number(p.rating) : 4.8,
               reviewsCount: p.reviews_count || 12,
               specs: p.specs || undefined,
-              inStock: (p.stock || 0) > 0,
+              inStock: stock > 0,
               badge: p.is_featured ? { text: "FEATURED", type: "hot" } : undefined,
               description: p.description,
             };
@@ -606,11 +615,12 @@ function ProductsCatalogContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-3.5 sm:gap-4">
                   {products.map((product) => {
                     const isWishlisted = isInWishlist(product.id);
-                    const productSlug = product.name
+                    const productSlug = product.slug || product.name
                       .toLowerCase()
                       .replace(/[^\w\s-]/g, "")
                       .replace(/[\s_-]+/g, "-")
                       .replace(/^-+|-+$/g, "");
+                    const isOutOfStock = !product.inStock || (product.stock !== undefined && product.stock <= 0);
 
                     return (
                       <div
@@ -619,7 +629,11 @@ function ProductsCatalogContent() {
                       >
                         {/* Badges */}
                         <div className="flex items-center justify-between gap-1 mb-2">
-                          {product.badge ? (
+                          {isOutOfStock ? (
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-100">
+                              OUT OF STOCK
+                            </span>
+                          ) : product.badge ? (
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-100">
                               {product.badge.text}
                             </span>
@@ -696,12 +710,17 @@ function ProductsCatalogContent() {
                           </div>
 
                           <button
-                            onClick={() => addToCart(product)}
-                            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
-                            title="Add to Cart"
+                            onClick={() => !isOutOfStock && addToCart(product, 1, undefined, product.stock)}
+                            disabled={isOutOfStock}
+                            className={`p-2 sm:px-3 sm:py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 ${
+                              isOutOfStock
+                                ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                                : "bg-brand-primary hover:bg-brand-primary-dark text-white cursor-pointer"
+                            }`}
+                            title={isOutOfStock ? "Out of Stock" : "Add to Cart"}
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Add</span>
+                            <span className="hidden sm:inline">{isOutOfStock ? "Stock Out" : "Add"}</span>
                           </button>
                         </div>
                       </div>

@@ -23,9 +23,7 @@ interface DbCoupon {
   discount_type: "percentage" | "fixed";
   discount_value: number;
   min_order_amount?: number;
-  max_discount?: number;
-  usage_limit?: number;
-  used_count?: number;
+  max_discount_amount?: number;
   is_active: boolean;
   expires_at?: string;
   created_at?: string;
@@ -49,7 +47,6 @@ export default function AdminCouponsPage() {
   const [discountValue, setDiscountValue] = useState("");
   const [minOrder, setMinOrder] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
-  const [usageLimit, setUsageLimit] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [isActive, setIsActive] = useState(true);
 
@@ -84,7 +81,6 @@ export default function AdminCouponsPage() {
     setDiscountValue("");
     setMinOrder("");
     setMaxDiscount("");
-    setUsageLimit("");
     setExpiresAt("");
     setIsActive(true);
     setModalOpen(true);
@@ -96,8 +92,7 @@ export default function AdminCouponsPage() {
     setDiscountType(coupon.discount_type);
     setDiscountValue(String(coupon.discount_value));
     setMinOrder(coupon.min_order_amount ? String(coupon.min_order_amount) : "");
-    setMaxDiscount(coupon.max_discount ? String(coupon.max_discount) : "");
-    setUsageLimit(coupon.usage_limit ? String(coupon.usage_limit) : "");
+    setMaxDiscount(coupon.max_discount_amount ? String(coupon.max_discount_amount) : "");
     setExpiresAt(coupon.expires_at ? coupon.expires_at.split("T")[0] : "");
     setIsActive(coupon.is_active);
     setModalOpen(true);
@@ -126,8 +121,7 @@ export default function AdminCouponsPage() {
         discount_type: discountType,
         discount_value: val,
         min_order_amount: minOrder ? parseFloat(minOrder) : null,
-        max_discount: maxDiscount ? parseFloat(maxDiscount) : null,
-        usage_limit: usageLimit ? parseInt(usageLimit, 10) : null,
+        max_discount_amount: maxDiscount ? parseFloat(maxDiscount) : null,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         is_active: isActive,
       };
@@ -275,7 +269,7 @@ export default function AdminCouponsPage() {
                       {coupon.min_order_amount ? formatBDT(coupon.min_order_amount) : "No Minimum"}
                     </td>
                     <td className="py-3 px-4">
-                      {coupon.max_discount ? formatBDT(coupon.max_discount) : "No Limit"}
+                      {coupon.max_discount_amount ? formatBDT(coupon.max_discount_amount) : "No Limit"}
                     </td>
                     <td className="py-3 px-4">
                       {coupon.is_active ? (

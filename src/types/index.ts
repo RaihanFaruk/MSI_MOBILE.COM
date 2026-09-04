@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  slug?: string;
   name: string;
   brand: string;
   category: string;
@@ -14,6 +15,7 @@ export interface Product {
     type: 'discount' | 'new' | 'hot';
   };
   inStock?: boolean;
+  stock?: number;
   stockPercentage?: number;
   description?: string;
   features?: string[];

@@ -248,6 +248,7 @@ export async function POST(request: Request) {
       success: true,
       requires_payment_redirect: false,
       order_id: rpcResult.order_id,
+      order_number: rpcResult.order_number || rpcResult.order_id,
       order_summary: rpcResult,
       payment_method: selectedMethod,
       message: "Order placed successfully!",

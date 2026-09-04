@@ -23,7 +23,6 @@ interface AdminReview {
   user_name: string;
   user_id?: string;
   rating: number;
-  title?: string;
   comment: string;
   is_approved: boolean;
   created_at: string;
@@ -67,7 +66,6 @@ export default function AdminReviewsPage() {
           user_name,
           user_id,
           rating,
-          title,
           comment,
           is_approved,
           created_at,
@@ -423,9 +421,6 @@ export default function AdminReviewsPage() {
                             </span>
                           </div>
 
-                          {rev.title && (
-                            <h4 className="font-bold text-slate-200 text-xs">{rev.title}</h4>
-                          )}
                           <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                             &ldquo;{rev.comment}&rdquo;
                           </p>

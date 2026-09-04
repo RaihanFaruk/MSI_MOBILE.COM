@@ -75,7 +75,7 @@ export default function AdminEditProductPage() {
           setDescription(prodData.description || "");
           const firstImg = Array.isArray(prodData.images) && prodData.images.length > 0
             ? prodData.images[0]
-            : (prodData.image_url || "");
+            : "";
           setImageUrl(firstImg);
           setIsFeatured(Boolean(prodData.is_featured));
         }

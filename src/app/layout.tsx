@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { StoreProvider } from "@/context/StoreContext";
 import { CartDrawer } from "@/components/header/CartDrawer";
 import { MobileDrawer } from "@/components/header/MobileDrawer";
+import { ToastContainer } from "@/components/common/Toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -88,6 +89,7 @@ export default function RootLayout({
             {children}
             <CartDrawer />
             <MobileDrawer />
+            <ToastContainer />
           </StoreProvider>
         </AuthProvider>
       </body>

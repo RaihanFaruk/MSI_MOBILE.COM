@@ -33,14 +33,23 @@ export const PowerfulLaptops: React.FC = () => {
               ? p.images[0]
               : "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&auto=format&fit=crop&q=80";
 
+            const regularPrice = Number(p.price) || 0;
+            const discountPrice = p.discount_price ? Number(p.discount_price) : null;
+            const hasValidDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+            const sellingPrice = hasValidDiscount ? discountPrice : regularPrice;
+            const originalPrice = hasValidDiscount ? regularPrice : undefined;
+            const discountPct = hasValidDiscount ? Math.round(((regularPrice - discountPrice) / regularPrice) * 100) : null;
+            const stock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+
             return {
               id: String(p.id),
+              slug: p.slug,
               name: p.name,
               brand: p.brand,
               category: "laptops",
               image: firstImg,
-              price: Number(p.price),
-              originalPrice: p.discount_price ? Number(p.discount_price) : undefined,
+              price: sellingPrice,
+              originalPrice,
               rating: p.rating ? Number(p.rating) : 4.9,
               reviewsCount: p.reviews_count || 15,
               processor: parts[0] || "Intel Core i9-14900HX",
@@ -49,7 +58,13 @@ export const PowerfulLaptops: React.FC = () => {
               storage: parts[3] || "1TB NVMe SSD",
               display: parts[4] || '16" 240Hz Display',
               specs: p.specs,
-              badge: p.is_featured ? { text: "HOT DEAL", type: "hot" } : undefined,
+              inStock: stock > 0,
+              stock,
+              badge: hasValidDiscount
+                ? { text: `${discountPct}% OFF`, type: "discount" }
+                : p.is_featured
+                ? { text: "HOT DEAL", type: "hot" }
+                : undefined,
               description: p.description,
             };
           });
@@ -72,27 +87,28 @@ export const PowerfulLaptops: React.FC = () => {
     <section id="laptops" className="py-8 sm:py-12 bg-bg-light border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-indigo-100/80 text-indigo-600">
-              <Laptop className="w-5 h-5" />
+        <div className="flex items-center justify-between mb-5 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-indigo-100/80 text-indigo-600">
+              <Laptop className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
+              <h2 className="text-lg sm:text-2xl font-extrabold text-navy-dark tracking-tight">
                 Powerful Laptops & Workstations
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
-                High-performance machines for gaming, 3D rendering and professional creators
+              <p className="text-[11px] sm:text-sm text-slate-500">
+                High-performance machines for gaming, 3D rendering and creators
               </p>
             </div>
           </div>
 
           <Link
             href="/products?category=laptops"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
+            className="flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors shrink-0"
           >
-            <span>View All Laptops</span>
-            <ArrowRight className="w-4 h-4" />
+            <span className="hidden xs:inline">View All Laptops</span>
+            <span className="xs:hidden">All Laptops</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 

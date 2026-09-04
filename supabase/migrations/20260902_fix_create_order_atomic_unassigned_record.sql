@@ -30,8 +30,8 @@ SET search_path = public
 AS $$
 DECLARE
   v_item JSONB;
-  v_product_id UUID;
-  v_variation_id UUID;
+  v_product_id BIGINT;
+  v_variation_id BIGINT;
   v_quantity INTEGER;
   v_product_row public.products%ROWTYPE;
   v_variation_row public.product_variations%ROWTYPE;
@@ -44,7 +44,7 @@ DECLARE
   v_shipping NUMERIC(12, 2) := 0;
   v_grand_total NUMERIC(12, 2) := 0;
   v_verified_items JSONB := '[]'::jsonb;
-  v_order_id UUID;
+  v_order_id BIGINT;
   v_order_number TEXT;
   v_coupon_record RECORD;
 BEGIN
@@ -58,8 +58,11 @@ BEGIN
   -- Process and lock each line item
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
   LOOP
-    v_product_id := (v_item->>'product_id')::UUID;
-    v_variation_id := NULLIF(NULLIF(v_item->>'variation_id', 'null'), 'std')::UUID;
+    v_product_id := (v_item->>'product_id')::BIGINT;
+    v_variation_id := CASE
+      WHEN NULLIF(NULLIF(v_item->>'variation_id', 'null'), 'std') IS NULL THEN NULL
+      ELSE (v_item->>'variation_id')::BIGINT
+    END;
     v_quantity := GREATEST(1, COALESCE((v_item->>'quantity')::INTEGER, 1));
     v_item_color := NULL;
     v_item_storage := NULL;
@@ -145,7 +148,7 @@ BEGIN
     WHERE code = UPPER(TRIM(p_coupon_code))
       AND is_active = true
       AND (expires_at IS NULL OR expires_at > NOW())
-      AND (usage_limit IS NULL OR used_count < usage_limit)
+      AND (expires_at IS NULL OR expires_at > NOW())
     FOR UPDATE;
 
     IF FOUND THEN
@@ -160,8 +163,6 @@ BEGIN
         END IF;
 
         UPDATE public.coupons
-        SET used_count = COALESCE(used_count, 0) + 1
-        WHERE id = v_coupon_record.id;
       END IF;
     END IF;
   END IF;

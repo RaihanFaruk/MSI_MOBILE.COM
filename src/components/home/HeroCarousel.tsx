@@ -94,7 +94,7 @@ export const HeroCarousel: React.FC = () => {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
               {slide.headline}{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-rose-400">
                 {slide.headlineHighlight}
@@ -102,15 +102,15 @@ export const HeroCarousel: React.FC = () => {
             </h1>
 
             {/* Subtext */}
-            <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed">
+            <p className="text-slate-300 text-xs sm:text-base lg:text-lg max-w-xl leading-relaxed">
               {slide.subtext}
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2 w-full sm:w-auto">
               <a
                 href={slide.primaryBtnLink}
-                className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl flex items-center gap-2 text-sm sm:text-base shadow-lg shadow-blue-600/30 transition-all duration-200"
+                className="bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-base shadow-lg shadow-blue-600/30 transition-all duration-200 min-h-[44px]"
               >
                 <span>{slide.primaryBtnText}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -118,21 +118,21 @@ export const HeroCarousel: React.FC = () => {
 
               <a
                 href={slide.secondaryBtnLink}
-                className="border-2 border-white/40 hover:border-white hover:bg-white/10 active:scale-95 text-white font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base backdrop-blur-sm transition-all duration-200"
+                className="border-2 border-white/40 hover:border-white hover:bg-white/10 active:scale-95 text-white font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl text-xs sm:text-base backdrop-blur-sm transition-all duration-200 flex items-center justify-center min-h-[44px]"
               >
                 <span>{slide.secondaryBtnText}</span>
               </a>
             </div>
 
             {/* Trust Highlights */}
-            <div className="pt-4 flex items-center gap-4 sm:gap-6 text-xs text-slate-300 border-t border-slate-800/80 w-full">
+            <div className="pt-4 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-6 text-[11px] sm:text-xs text-slate-300 border-t border-slate-800/80 w-full">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>100% Official Warranty</span>
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="truncate">100% Official Warranty</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-rose-400" />
-                <span>Zero% EMI Available</span>
+                <Flame className="w-4 h-4 text-rose-400 shrink-0" />
+                <span className="truncate">Zero% EMI Available</span>
               </div>
             </div>
           </div>

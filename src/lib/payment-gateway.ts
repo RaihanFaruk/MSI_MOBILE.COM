@@ -32,9 +32,16 @@ export async function initiateOnlinePayment(
   payload: PaymentInitiationPayload
 ): Promise<PaymentGatewayResponse> {
   const isLive = process.env.SSLCOMMERZ_IS_LIVE === "true";
-  const storeId = process.env.SSLCOMMERZ_STORE_ID || "testbox";
-  const storePasswd = process.env.SSLCOMMERZ_STORE_PASSWORD || "qwerty";
+  const storeId = process.env.SSLCOMMERZ_STORE_ID || "";
+  const storePasswd = process.env.SSLCOMMERZ_STORE_PASSWORD || "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://msi-mobile-com.vercel.app";
+
+  if (!storeId || !storePasswd) {
+    return {
+      success: false,
+      message: "Payment gateway credentials are not configured in environment variables.",
+    };
+  }
 
   const gatewayUrl = isLive
     ? "https://securepay.sslcommerz.com/gwprocess/v4/api.php"

@@ -76,22 +76,42 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
   };
 
   // Pricing & Stock calculated live from variation or base product
-  const currentPrice = selectedVariation?.price ?? Number(product.price);
-  const currentDiscountPrice = selectedVariation?.discount_price ?? (product.discount_price ? Number(product.discount_price) : undefined);
-  const currentStock = selectedVariation ? selectedVariation.stock : (product.stock ?? 0);
+  const baseRegularPrice = Number(product.price) || 0;
+  const baseDiscountPrice = product.discount_price ? Number(product.discount_price) : null;
+  const baseHasDiscount = baseDiscountPrice !== null && baseDiscountPrice > 0 && baseDiscountPrice < baseRegularPrice;
+
+  // Selected variation pricing
+  const varRegularPrice = selectedVariation?.price ? Number(selectedVariation.price) : baseRegularPrice;
+  const varDiscountPrice = selectedVariation?.discount_price 
+    ? Number(selectedVariation.discount_price) 
+    : (selectedVariation ? null : (baseHasDiscount ? baseDiscountPrice : null));
+  const varHasDiscount = varDiscountPrice !== null && varDiscountPrice > 0 && varDiscountPrice < varRegularPrice;
+
+  const currentSellingPrice = varHasDiscount ? varDiscountPrice : varRegularPrice;
+  const currentOriginalPrice = varHasDiscount ? varRegularPrice : undefined;
+  const currentStock = selectedVariation !== null && selectedVariation.stock !== undefined 
+    ? Number(selectedVariation.stock) 
+    : (product.stock !== undefined && product.stock !== null ? Number(product.stock) : 0);
   const isOutOfStock = currentStock <= 0;
 
-  // Image Gallery state
-  const imagesList = Array.isArray(product.images) && product.images.length > 0
+  // Image Gallery state - prioritize variation image if available
+  const baseImages = Array.isArray(product.images) && product.images.length > 0
     ? product.images
     : ["https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"];
+
+  const imagesList = selectedVariation?.image_url && !baseImages.includes(selectedVariation.image_url)
+    ? [selectedVariation.image_url, ...baseImages]
+    : baseImages;
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "reviews">("desc");
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Reviews State
-  const [reviewsList, setReviewsList] = useState<DbReview[]>(product.reviews || []);
+  // Reviews State - only approved reviews
+  const approvedInitialReviews = (product.reviews || []).filter(
+    (r: DbReview) => (r as unknown as { is_approved?: boolean }).is_approved !== false
+  );
+  const [reviewsList, setReviewsList] = useState<DbReview[]>(approvedInitialReviews);
   const [reviewRating, setReviewRating] = useState<number>(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -140,17 +160,17 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
 
   const isWishlisted = isInWishlist(String(product.id));
 
-  // Convert to Store product for cart
+  // Convert to Store product for cart with correct selling price & original price
   const cartProductFormat: Product = {
     id: String(product.id),
     name: `${product.name} ${selectedColor !== "Standard" ? `(${selectedColor})` : ""} ${selectedStorage !== "Standard" ? selectedStorage : ""}`.trim(),
     brand: product.brand,
     category: product.category || "Smartphones",
     image: imagesList[0],
-    price: currentPrice,
-    originalPrice: currentDiscountPrice,
+    price: currentSellingPrice,
+    originalPrice: currentOriginalPrice,
     rating: product.rating ? Number(product.rating) : 5,
-    reviewsCount: product.reviews_count || 10,
+    reviewsCount: product.reviews_count || reviewsList.length || 10,
     inStock: !isOutOfStock,
   };
 
@@ -269,15 +289,15 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-1">
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl sm:text-3xl font-black text-brand-primary">
-                  {formatBDT(currentPrice)}
+                  {formatBDT(currentSellingPrice)}
                 </span>
-                {currentDiscountPrice && currentDiscountPrice > currentPrice && (
+                {currentOriginalPrice && currentOriginalPrice > currentSellingPrice && (
                   <>
                     <span className="text-sm sm:text-base text-slate-400 line-through">
-                      {formatBDT(currentDiscountPrice)}
+                      {formatBDT(currentOriginalPrice)}
                     </span>
                     <span className="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-                      Save {formatBDT(currentDiscountPrice - currentPrice)}
+                      Save {formatBDT(currentOriginalPrice - currentSellingPrice)}
                     </span>
                   </>
                 )}
@@ -403,7 +423,7 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
                 <button
                   onClick={handleAddToCart}
                   disabled={isOutOfStock}
-                  className="flex-1 w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all disabled:bg-slate-300 disabled:cursor-not-allowed"
+                  className="flex-1 w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all min-h-[44px] disabled:bg-slate-300 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ShoppingCart className="w-4 h-4" />
                   <span>{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
@@ -413,7 +433,7 @@ export default function ProductDetailsClient({ product, relatedProducts }: Props
                 <button
                   onClick={handleBuyNow}
                   disabled={isOutOfStock}
-                  className="flex-1 w-full bg-brand-primary hover:bg-brand-primary-dark active:scale-98 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed"
+                  className="flex-1 w-full bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white font-bold py-3.5 px-6 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all min-h-[44px] disabled:bg-slate-300 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
                   <span>Buy Now</span>

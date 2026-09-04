@@ -1,6 +1,6 @@
--- Migration: Fix create_order_atomic UUID product_id & variation_id types
+-- Migration: Fix create_order_atomic product_id & variation_id types
 -- Date: 2026-09-05
--- Resolves: "invalid input syntax for type integer: 'a0000000-0000-0000-0000-000000000003'"
+-- The canonical admin schema uses BIGINT identifiers.
 
 CREATE OR REPLACE FUNCTION public.create_order_atomic(
   p_user_id UUID,
@@ -17,11 +17,11 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  v_order_id UUID := gen_random_uuid();
+  v_order_id BIGINT;
   v_order_number TEXT;
   v_item JSONB;
-  v_product_id TEXT;
-  v_variation_id TEXT;
+  v_product_id BIGINT;
+  v_variation_id BIGINT;
   v_qty INT;
   v_price NUMERIC;
   v_stock INT;
@@ -43,11 +43,12 @@ BEGIN
   -- Iterate through order items
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
   LOOP
-    v_product_id := TRIM(v_item->>'product_id');
-    v_variation_id := NULLIF(TRIM(v_item->>'variation_id'), '');
-    IF v_variation_id = 'null' OR v_variation_id = 'std' OR v_variation_id = 'undefined' THEN
-      v_variation_id := NULL;
-    END IF;
+    v_product_id := (v_item->>'product_id')::BIGINT;
+    v_variation_id := CASE
+      WHEN TRIM(COALESCE(v_item->>'variation_id', '')) IN ('', 'null', 'std', 'undefined') THEN NULL
+      ELSE (v_item->>'variation_id')::BIGINT
+    END;
+    v_variation_row := NULL;
 
     v_qty := COALESCE((v_item->>'quantity')::INT, 1);
     v_item_color := NULL;
@@ -57,10 +58,10 @@ BEGIN
       RAISE EXCEPTION 'Item quantity must be greater than zero.';
     END IF;
 
-    -- Lock and verify base product by stringified UUID
+    -- Lock and verify the base product.
     SELECT * INTO v_product_row
     FROM public.products
-    WHERE id::text = v_product_id
+    WHERE id = v_product_id
     FOR UPDATE;
 
     IF NOT FOUND THEN
@@ -75,7 +76,7 @@ BEGIN
     IF v_variation_id IS NOT NULL THEN
       SELECT * INTO v_variation_row
       FROM public.product_variations
-      WHERE id::text = v_variation_id AND product_id::text = v_product_id
+      WHERE id = v_variation_id AND product_id = v_product_id
       FOR UPDATE;
 
       IF NOT FOUND THEN
@@ -145,8 +146,7 @@ BEGIN
     FROM public.coupons
     WHERE code = UPPER(TRIM(p_coupon_code))
       AND is_active = true
-      AND (valid_until IS NULL OR valid_until > NOW())
-      AND (usage_limit IS NULL OR used_count < usage_limit)
+      AND (expires_at IS NULL OR expires_at > NOW())
     FOR UPDATE;
 
     IF FOUND THEN
@@ -160,9 +160,6 @@ BEGIN
           v_discount := LEAST(v_coupon_record.discount_value, v_subtotal);
         END IF;
 
-        UPDATE public.coupons
-        SET used_count = COALESCE(used_count, 0) + 1
-        WHERE id = v_coupon_record.id;
       END IF;
     END IF;
   END IF;
@@ -171,7 +168,6 @@ BEGIN
 
   -- Insert atomic order record
   INSERT INTO public.orders (
-    id,
     user_id,
     order_number,
     customer_name,
@@ -188,7 +184,6 @@ BEGIN
     status,
     created_at
   ) VALUES (
-    v_order_id,
     p_user_id,
     v_order_number,
     p_customer_name,
@@ -204,7 +199,7 @@ BEGIN
     'pending',
     'pending',
     NOW()
-  );
+  ) RETURNING id INTO v_order_id;
 
   -- Return complete order summary JSON
   RETURN jsonb_build_object(

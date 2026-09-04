@@ -12,7 +12,8 @@ import {
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId") || "MSI-" + Math.floor(100000 + Math.random() * 900000);
+  const orderNumber = searchParams.get("orderNumber") || searchParams.get("orderId") || "MSI-ORDER";
+  const orderId = searchParams.get("orderId") || orderNumber;
   const method = searchParams.get("method") || "COD";
 
   const isOnlinePayment = method !== "COD";
@@ -41,8 +42,8 @@ function SuccessContent() {
           {/* Order Details Card */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 font-semibold">Order Reference ID:</span>
-              <strong className="font-mono text-brand-primary text-sm font-bold">#{orderId}</strong>
+              <span className="text-slate-500 font-semibold">Order Number:</span>
+              <strong className="font-mono text-brand-primary text-sm font-bold">{orderNumber.startsWith("#") ? orderNumber : `#${orderNumber}`}</strong>
             </div>
 
             <div className="flex justify-between items-center">

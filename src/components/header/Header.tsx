@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 import {
   Search,
   User,
@@ -13,8 +15,21 @@ import {
   Menu,
   ChevronDown,
   X,
+  Loader2,
+  ArrowRight,
 } from "lucide-react";
 import { formatBDT } from "@/utils/formatters";
+
+interface SearchSuggestion {
+  id: string | number;
+  slug?: string;
+  name: string;
+  brand: string;
+  price: number;
+  discount_price?: number | null;
+  stock?: number;
+  image: string;
+}
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -30,14 +45,93 @@ export const Header: React.FC = () => {
   } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node) &&
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(e.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  // Live search suggestion query with 250ms debounce
+  useEffect(() => {
+    const cleanQ = searchQuery.trim();
+    if (cleanQ.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const query = supabase
+          .from("products")
+          .select("id, name, slug, brand, price, discount_price, stock, images")
+          .or(`name.ilike.%${cleanQ}%,brand.ilike.%${cleanQ}%`)
+          .limit(5);
+
+        const { data } = await query;
+        if (data && data.length > 0) {
+          const items: SearchSuggestion[] = data.map((p) => {
+            const firstImg = Array.isArray(p.images) && p.images.length > 0
+              ? p.images[0]
+              : "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80";
+
+            return {
+              id: p.id,
+              slug: p.slug,
+              name: p.name,
+              brand: p.brand,
+              price: Number(p.price),
+              discount_price: p.discount_price ? Number(p.discount_price) : null,
+              stock: p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0,
+              image: firstImg,
+            };
+          });
+          setSuggestions(items);
+          setShowDropdown(true);
+        } else {
+          setSuggestions([]);
+          setShowDropdown(true);
+        }
+      } catch (err) {
+        console.error("Search suggestions error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowDropdown(false);
     if (searchQuery.trim()) {
       router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
       router.push("/products");
     }
+  };
+
+  const handleSuggestionClick = (slugOrId: string) => {
+    setShowDropdown(false);
+    router.push(`/products/${slugOrId}`);
   };
 
   return (
@@ -48,14 +142,14 @@ export const Header: React.FC = () => {
         <button
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open Navigation Menu"
-          className="lg:hidden p-2 -ml-2 text-slate-700 hover:text-brand-primary rounded-lg hover:bg-slate-100 transition-colors"
+          className="lg:hidden p-2 -ml-2 text-slate-700 hover:text-brand-primary rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <Menu className="w-6 h-6" />
         </button>
 
         {/* Brand Logo */}
         <div className="flex items-center gap-1.5 cursor-pointer select-none">
-          <a href="#" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="bg-brand-accent text-white font-extrabold text-lg sm:text-xl px-2.5 py-1 rounded-md tracking-wider shadow-sm flex items-center justify-center">
               MSI
             </span>
@@ -67,11 +161,11 @@ export const Header: React.FC = () => {
                 Premium Tech BD
               </span>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Desktop / Laptop Search Bar (Hidden on Mobile & Tablet) */}
-        <div className="hidden lg:flex flex-1 max-w-2xl mx-6">
+        <div ref={searchContainerRef} className="hidden lg:flex flex-1 max-w-2xl mx-6 relative">
           <form
             onSubmit={handleSearchSubmit}
             className="w-full flex items-center bg-slate-50 border-2 border-slate-200 focus-within:border-brand-primary rounded-xl overflow-hidden transition-all shadow-inner"
@@ -95,11 +189,18 @@ export const Header: React.FC = () => {
 
             {/* Input field */}
             <div className="flex-1 flex items-center px-3">
-              <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+              {isSearching ? (
+                <Loader2 className="w-4 h-4 text-brand-primary animate-spin shrink-0 mr-2" />
+              ) : (
+                <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+              )}
               <input
                 type="text"
                 aria-label="Search for products, brands and accessories"
                 value={searchQuery}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowDropdown(true);
+                }}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for smartphones, laptops, audio, accessories..."
                 className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 py-2.5 focus:outline-none"
@@ -109,7 +210,10 @@ export const Header: React.FC = () => {
                   type="button"
                   aria-label="Clear search input"
                   title="Clear search"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setShowDropdown(false);
+                  }}
                   className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -127,6 +231,86 @@ export const Header: React.FC = () => {
               <span>Search</span>
             </button>
           </form>
+
+          {/* Search Suggestions Dropdown (Desktop) */}
+          {showDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-50 animate-in fade-in-50 duration-150">
+              {suggestions.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                  <div className="p-2 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <span>Matching Products</span>
+                    <span>{suggestions.length} results</span>
+                  </div>
+
+                  {suggestions.map((item) => {
+                    const regularPrice = item.price;
+                    const discountPrice = item.discount_price ? Number(item.discount_price) : null;
+                    const hasValidDisc = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+                    const sellingPrice = hasValidDisc ? discountPrice : regularPrice;
+                    const originalPrice = hasValidDisc ? regularPrice : undefined;
+                    const isOut = item.stock !== undefined && item.stock <= 0;
+                    const itemSlug = item.slug || String(item.id);
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => handleSuggestionClick(itemSlug)}
+                        className="p-3 flex items-center gap-3 hover:bg-blue-50/50 cursor-pointer transition-colors"
+                      >
+                        <div className="relative w-12 h-12 bg-slate-50 rounded-xl overflow-hidden border border-slate-100 shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-contain p-1"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                              {item.brand}
+                            </span>
+                            {isOut && (
+                              <span className="text-[9px] font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded">
+                                Out of Stock
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-xs font-bold text-slate-800 truncate">
+                            {item.name}
+                          </h4>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-xs font-extrabold text-slate-900 block">
+                            {formatBDT(sellingPrice)}
+                          </span>
+                          {originalPrice && (
+                            <span className="text-[10px] text-slate-400 line-through">
+                              {formatBDT(originalPrice)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={handleSearchSubmit}
+                    className="w-full p-2.5 bg-slate-50 hover:bg-blue-50 text-center text-xs font-bold text-brand-primary flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <span>View all results for &ldquo;{searchQuery}&rdquo;</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-xs text-slate-500 space-y-1">
+                  <p className="font-semibold text-slate-700">No products found for &ldquo;{searchQuery}&rdquo;</p>
+                  <p className="text-[11px] text-slate-400">Try searching by brand (e.g. Apple, Samsung, MSI) or model name.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Action Icons: Account, Wishlist, Cart */}
@@ -277,16 +461,23 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Mobile/Tablet Dedicated Search Bar Row (Below main header) */}
-      <div className="lg:hidden px-4 pb-3 pt-1 border-t border-slate-100 bg-slate-50/60">
+      <div ref={mobileSearchRef} className="lg:hidden px-4 pb-3 pt-1 border-t border-slate-100 bg-slate-50/60 relative">
         <form
           onSubmit={handleSearchSubmit}
           className="w-full flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-xs focus-within:border-brand-primary"
         >
-          <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+          {isSearching ? (
+            <Loader2 className="w-4 h-4 text-brand-primary animate-spin shrink-0 mr-2" />
+          ) : (
+            <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+          )}
           <input
             type="text"
             aria-label="Search mobile catalog"
             value={searchQuery}
+            onFocus={() => {
+              if (suggestions.length > 0) setShowDropdown(true);
+            }}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="🔍 Search tech and accessories..."
             className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
@@ -296,13 +487,88 @@ export const Header: React.FC = () => {
               type="button"
               aria-label="Clear mobile search"
               title="Clear search"
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setShowDropdown(false);
+              }}
               className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </form>
+
+        {/* Mobile Search Suggestions Dropdown */}
+        {showDropdown && (
+          <div className="absolute top-full left-4 right-4 mt-1 bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-50 animate-in fade-in-50 duration-150 max-h-80 overflow-y-auto">
+            {suggestions.length > 0 ? (
+              <div className="divide-y divide-slate-100">
+                {suggestions.map((item) => {
+                  const regularPrice = item.price;
+                  const discountPrice = item.discount_price ? Number(item.discount_price) : null;
+                  const hasValidDisc = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+                  const sellingPrice = hasValidDisc ? discountPrice : regularPrice;
+                  const originalPrice = hasValidDisc ? regularPrice : undefined;
+                  const isOut = item.stock !== undefined && item.stock <= 0;
+                  const itemSlug = item.slug || String(item.id);
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSuggestionClick(itemSlug)}
+                      className="p-2.5 flex items-center gap-2.5 hover:bg-blue-50/50 cursor-pointer transition-colors"
+                    >
+                      <div className="relative w-10 h-10 bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shrink-0">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-contain p-0.5"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase block">
+                          {item.brand}
+                        </span>
+                        <h4 className="text-xs font-bold text-slate-800 truncate">
+                          {item.name}
+                        </h4>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-extrabold text-slate-900 block">
+                          {formatBDT(sellingPrice)}
+                        </span>
+                        {originalPrice && (
+                          <span className="text-[10px] text-slate-400 line-through block">
+                            {formatBDT(originalPrice)}
+                          </span>
+                        )}
+                        {isOut && (
+                          <span className="text-[9px] text-rose-500 font-bold block">
+                            Out of stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="w-full p-2.5 bg-slate-50 hover:bg-blue-50 text-center text-xs font-bold text-brand-primary flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>View all results for &ldquo;{searchQuery}&rdquo;</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 text-center text-xs text-slate-500">
+                No products found for &ldquo;{searchQuery}&rdquo;
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );

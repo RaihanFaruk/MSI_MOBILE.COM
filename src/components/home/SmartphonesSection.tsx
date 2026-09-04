@@ -52,19 +52,33 @@ export const SmartphonesSection: React.FC = () => {
               ? p.images[0]
               : "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80";
 
+            const regularPrice = Number(p.price) || 0;
+            const discountPrice = p.discount_price ? Number(p.discount_price) : null;
+            const hasValidDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+            const sellingPrice = hasValidDiscount ? discountPrice : regularPrice;
+            const originalPrice = hasValidDiscount ? regularPrice : undefined;
+            const discountPct = hasValidDiscount ? Math.round(((regularPrice - discountPrice) / regularPrice) * 100) : null;
+            const stock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+
             return {
               id: String(p.id),
+              slug: p.slug,
               name: p.name,
               brand: p.brand,
               category: p.categories?.name || "Smartphones",
               image: firstImg,
-              price: Number(p.price),
-              originalPrice: p.discount_price ? Number(p.discount_price) : undefined,
+              price: sellingPrice,
+              originalPrice,
               rating: p.rating ? Number(p.rating) : 4.9,
               reviewsCount: p.reviews_count || 12,
               specs: p.specs || undefined,
-              inStock: (p.stock || 0) > 0,
-              badge: p.is_featured ? { text: "OFFICIAL", type: "discount" } : undefined,
+              inStock: stock > 0,
+              stock,
+              badge: hasValidDiscount
+                ? { text: `${discountPct}% OFF`, type: "discount" }
+                : p.is_featured
+                ? { text: "OFFICIAL", type: "discount" }
+                : undefined,
               description: p.description,
             };
           });
@@ -87,16 +101,16 @@ export const SmartphonesSection: React.FC = () => {
     <section id="smartphones" className="py-8 sm:py-12 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4">
         {/* Section Header with Filter Tabs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-blue-100/80 text-brand-primary">
-              <Smartphone className="w-5 h-5" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4 mb-5 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-blue-100/80 text-brand-primary">
+              <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
+              <h2 className="text-lg sm:text-2xl font-extrabold text-navy-dark tracking-tight">
                 Latest Smartphones
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
+              <p className="text-[11px] sm:text-sm text-slate-500">
                 Official global & TRCS verified devices with BTRC approval
               </p>
             </div>
@@ -108,7 +122,7 @@ export const SmartphonesSection: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap active:scale-95 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap active:scale-95 min-h-[36px] ${
                   activeTab === tab.id
                     ? "bg-brand-primary text-white shadow-md shadow-blue-500/20"
                     : "bg-slate-100/80 hover:bg-slate-200/80 text-slate-600"
@@ -137,6 +151,7 @@ export const SmartphonesSection: React.FC = () => {
               <ProductCard
                 key={product.id}
                 id={product.id}
+                slug={product.slug}
                 name={product.name}
                 brand={product.brand}
                 image={product.image}
@@ -146,6 +161,8 @@ export const SmartphonesSection: React.FC = () => {
                 reviewsCount={product.reviewsCount}
                 specs={product.specs}
                 badge={product.badge}
+                inStock={product.inStock}
+                stock={product.stock}
                 isWishlisted={isInWishlist(product.id)}
                 onAddToCart={() => addToCart(product)}
                 onToggleWishlist={() => toggleWishlist(product.id)}

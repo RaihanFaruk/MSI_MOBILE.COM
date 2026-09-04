@@ -18,15 +18,23 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { DbProduct, DbCategory } from "@/types";
 
-export default function AdminProductsPage() {
+function AdminProductsContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const stockParam = searchParams.get("stock") || "all";
+
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [selectedStock, setSelectedStock] = useState(stockParam);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -121,7 +129,19 @@ export default function AdminProductsPage() {
     const matchesBrand =
       selectedBrand === "all" || p.brand?.toUpperCase() === selectedBrand.toUpperCase();
 
-    return matchesSearch && matchesCategory && matchesBrand;
+    const currentStock = p.stock ?? 0;
+    const matchesStock =
+      selectedStock === "all"
+        ? true
+        : selectedStock === "low"
+        ? currentStock < 5
+        : selectedStock === "out"
+        ? currentStock === 0
+        : selectedStock === "in_stock"
+        ? currentStock >= 5
+        : true;
+
+    return matchesSearch && matchesCategory && matchesBrand && matchesStock;
   });
 
   // Pagination Calculations
@@ -235,6 +255,27 @@ export default function AdminProductsPage() {
               ))}
             </select>
           )}
+
+          {/* Stock Filter */}
+          <select
+            value={selectedStock}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedStock(val);
+              setCurrentPage(1);
+              const sp = new URLSearchParams(window.location.search);
+              if (val !== "all") sp.set("stock", val);
+              else sp.delete("stock");
+              const qs = sp.toString();
+              router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+            }}
+            className="w-full sm:w-auto px-3 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none"
+          >
+            <option value="all">All Stock Status</option>
+            <option value="low">⚠️ Low Stock (&lt; 5)</option>
+            <option value="out">❌ Out of Stock (0)</option>
+            <option value="in_stock">✅ In Stock (≥ 5)</option>
+          </select>
         </div>
 
         <div className="text-xs text-slate-400 font-semibold">
@@ -287,92 +328,120 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {paginatedProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-slate-800/40 transition-colors">
-                    {/* Image & Title */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-11 h-11 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shrink-0 flex items-center justify-center">
-                          {product.image_url ? (
-                            <Image
-                              src={product.image_url}
-                              alt={product.name}
-                              fill
-                              className="object-contain p-1"
-                            />
-                          ) : (
-                            <Package className="w-5 h-5 text-slate-600" />
+                {paginatedProducts.map((product) => {
+                  const currentStock = product.stock ?? 0;
+                  const isLowStock = currentStock < 5;
+
+                  return (
+                    <tr
+                      key={product.id}
+                      className={`transition-colors ${
+                        currentStock === 0
+                          ? "bg-rose-950/20 hover:bg-rose-950/30"
+                          : isLowStock
+                          ? "bg-amber-950/15 hover:bg-amber-950/25"
+                          : "hover:bg-slate-800/40"
+                      }`}
+                    >
+                      {/* Image & Title */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-11 h-11 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shrink-0 flex items-center justify-center">
+                            {product.images?.[0] ? (
+                              <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                fill
+                                className="object-contain p-1"
+                              />
+                            ) : (
+                              <Package className="w-5 h-5 text-slate-600" />
+                            )}
+                          </div>
+                          <div className="min-w-0 max-w-xs sm:max-w-sm">
+                            <p className="font-bold text-white truncate" title={product.name}>
+                              {product.name}
+                            </p>
+                            <span className="text-[11px] text-slate-500 font-mono">
+                              {product.slug || `id: ${product.id}`}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Brand */}
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold uppercase text-[10px]">
+                          {product.brand || "—"}
+                        </span>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4 text-slate-300">
+                        {product.categories?.name || product.category || "General Tech"}
+                      </td>
+
+                      {/* Price */}
+                      <td className="py-3.5 px-4 font-bold text-blue-400">
+                        {formatBDT(product.price || 0)}
+                        {product.discount_price && (
+                          <span className="block text-[10px] text-slate-500 line-through">
+                            {formatBDT(product.discount_price)}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Stock */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              currentStock > 10
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : currentStock > 0
+                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                            }`}
+                          >
+                            {currentStock} in stock
+                          </span>
+                          {isLowStock && (
+                            <span
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                                currentStock === 0
+                                  ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                                  : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                              }`}
+                            >
+                              <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+                              <span>{currentStock === 0 ? "Out of Stock" : "Low Stock"}</span>
+                            </span>
                           )}
                         </div>
-                        <div className="min-w-0 max-w-xs sm:max-w-sm">
-                          <p className="font-bold text-white truncate" title={product.name}>
-                            {product.name}
-                          </p>
-                          <span className="text-[11px] text-slate-500 font-mono">
-                            {product.slug || `id: ${product.id}`}
-                          </span>
+                      </td>
+
+                      {/* Action Buttons */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
+                            title="Edit Product"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            onClick={() => setDeleteModalId(product.id)}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-colors"
+                            title="Delete Product"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Brand */}
-                    <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold uppercase text-[10px]">
-                        {product.brand || "—"}
-                      </span>
-                    </td>
-
-                    {/* Category */}
-                    <td className="py-3.5 px-4 text-slate-300">
-                      {product.categories?.name || product.category || "General Tech"}
-                    </td>
-
-                    {/* Price */}
-                    <td className="py-3.5 px-4 font-bold text-blue-400">
-                      {formatBDT(product.price || 0)}
-                      {product.discount_price && (
-                        <span className="block text-[10px] text-slate-500 line-through">
-                          {formatBDT(product.discount_price)}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Stock */}
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          (product.stock || 0) > 10
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                            : (product.stock || 0) > 0
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                            : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                        }`}
-                      >
-                        {product.stock ?? 0} in stock
-                      </span>
-                    </td>
-
-                    {/* Action Buttons */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
-                          title="Edit Product"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </Link>
-                        <button
-                          onClick={() => setDeleteModalId(product.id)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-colors"
-                          title="Delete Product"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -438,5 +507,20 @@ export default function AdminProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-center py-20 text-slate-400 text-xs flex flex-col items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
+          <span>Loading products catalog...</span>
+        </div>
+      }
+    >
+      <AdminProductsContent />
+    </Suspense>
   );
 }

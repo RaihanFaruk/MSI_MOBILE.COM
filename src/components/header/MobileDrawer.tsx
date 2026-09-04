@@ -205,7 +205,7 @@ export const MobileDrawer: React.FC = () => {
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-brand-primary transition-colors"
+                  className="flex items-center justify-between min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-brand-primary transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="text-slate-400">{getCategoryIcon(cat.icon)}</span>
@@ -228,25 +228,25 @@ export const MobileDrawer: React.FC = () => {
                 <Link
                   href="/account"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                  className="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
                 >
-                  <User className="w-4 h-4 text-brand-primary" />
-                  <span>My Account ({profile?.full_name || user.email})</span>
+                  <User className="w-4 h-4 text-brand-primary shrink-0" />
+                  <span className="truncate">My Account ({profile?.full_name || user.email})</span>
                 </Link>
                 <Link
                   href="/account/orders"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                  className="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
                 >
-                  <Package className="w-4 h-4 text-slate-500" />
+                  <Package className="w-4 h-4 text-slate-500 shrink-0" />
                   <span>Order History</span>
                 </Link>
                 <Link
                   href="/wishlist"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-rose-600"
+                  className="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-rose-600"
                 >
-                  <Heart className="w-4 h-4 text-rose-500" />
+                  <Heart className="w-4 h-4 text-rose-500 shrink-0" />
                   <span>My Wishlist ({wishlist.length})</span>
                 </Link>
                 <button
@@ -254,7 +254,7 @@ export const MobileDrawer: React.FC = () => {
                     signOut();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rose-50 text-xs font-semibold text-rose-600"
+                  className="w-full text-left flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-rose-50 text-xs font-semibold text-rose-600"
                 >
                   <span>Sign Out</span>
                 </button>
@@ -263,19 +263,19 @@ export const MobileDrawer: React.FC = () => {
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                className="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
               >
-                <User className="w-4 h-4 text-slate-500" />
+                <User className="w-4 h-4 text-slate-500 shrink-0" />
                 <span>Sign In / Register</span>
               </Link>
             )}
 
             <a
               href="tel:+8801999600222"
-              className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
+              className="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700"
             >
-              <Phone className="w-4 h-4 text-emerald-600" />
-              <span>Customer Helpline: +880 1999-600222</span>
+              <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="truncate">Customer Helpline: +880 1999-600222</span>
             </a>
           </div>
         </div>

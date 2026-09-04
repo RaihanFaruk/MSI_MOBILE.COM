@@ -50,7 +50,7 @@ async function getProductBySlug(slug: string) {
       return nameData as DbProduct;
     }
   } catch (e) {
-    console.log("Supabase fetch error for slug:", slug, e);
+    console.error("Supabase fetch error for slug:", slug, e);
   }
 
   return null;
@@ -105,6 +105,11 @@ export default async function ProductPage({ params }: Props) {
     ? product.images[0]
     : "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80";
 
+  const regularPrice = Number(product.price) || 0;
+  const discountPrice = product.discount_price ? Number(product.discount_price) : null;
+  const hasValidDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+  const sellingPrice = hasValidDiscount ? discountPrice : regularPrice;
+
   // Google Rich Snippet JSON-LD Product Schema
   const jsonLd = {
     "@context": "https://schema.org",
@@ -120,7 +125,7 @@ export default async function ProductPage({ params }: Props) {
       "@type": "Offer",
       url: `https://msimobile.com.bd/products/${product.slug}`,
       priceCurrency: "BDT",
-      price: Number(product.price),
+      price: sellingPrice,
       priceValidUntil: "2027-12-31",
       itemCondition: "https://schema.org/NewCondition",
       availability: (product.stock || 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
@@ -151,23 +156,32 @@ export default async function ProductPage({ params }: Props) {
           ? p.images[0]
           : "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80";
 
+        const pRegPrice = Number(p.price) || 0;
+        const pDiscPrice = p.discount_price ? Number(p.discount_price) : null;
+        const pHasDisc = pDiscPrice !== null && pDiscPrice > 0 && pDiscPrice < pRegPrice;
+        const pSellingPrice = pHasDisc ? pDiscPrice : pRegPrice;
+        const pOriginalPrice = pHasDisc ? pRegPrice : undefined;
+        const pStock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+
         return {
           id: String(p.id),
+          slug: p.slug,
           name: p.name,
           brand: p.brand,
           category: "Smartphones",
           image: pImg,
-          price: Number(p.price),
-          originalPrice: p.discount_price ? Number(p.discount_price) : undefined,
+          price: pSellingPrice,
+          originalPrice: pOriginalPrice,
+          stock: pStock,
           rating: p.rating ? Number(p.rating) : 4.8,
           reviewsCount: p.reviews_count || 10,
           specs: p.specs,
-          inStock: (p.stock || 0) > 0,
+          inStock: pStock > 0,
         };
       });
     }
   } catch (e) {
-    console.log("Related products fallback:", e);
+    console.warn("Related products fallback:", e);
   }
 
   const sanitizedProduct = {

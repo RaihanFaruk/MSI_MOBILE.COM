@@ -21,7 +21,6 @@ import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { Newsletter } from "@/components/home/Newsletter";
 import { Footer } from "@/components/footer/Footer";
 import { QuickViewModal } from "@/components/common/QuickViewModal";
-import { ToastContainer } from "@/components/common/Toast";
 
 export default function HomePage() {
   return (
@@ -88,7 +87,6 @@ export default function HomePage() {
 
       {/* Global Modals */}
       <QuickViewModal />
-      <ToastContainer />
     </div>
   );
 }

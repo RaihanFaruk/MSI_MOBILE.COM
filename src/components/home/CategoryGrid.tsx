@@ -131,24 +131,24 @@ export const CategoryGrid: React.FC = () => {
             <span className="text-xs font-semibold">Loading departments...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-6 gap-2.5 sm:gap-4 lg:gap-5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-4 lg:gap-5">
             {categories.map((cat, index) => {
-              const isHiddenOnMobile = !showAllMobile && index >= 8;
+              const isHiddenOnMobile = !showAllMobile && index >= 6;
               return (
                 <Link
                   key={cat.id}
                   href={`/products?category=${encodeURIComponent(cat.slug)}`}
-                  className={`group flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-white border border-slate-100 hover:border-blue-300 hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${
-                    isHiddenOnMobile ? "hidden md:flex" : "flex"
+                  className={`group flex flex-col items-center text-center p-2.5 sm:p-4 rounded-xl bg-white border border-slate-100 hover:border-blue-300 hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${
+                    isHiddenOnMobile ? "hidden sm:flex" : "flex"
                   }`}
                 >
                   {/* Circular Icon Container */}
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-50/80 group-hover:bg-brand-primary/10 flex items-center justify-center mb-2.5 transition-colors duration-300 shadow-2xs">
+                  <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-blue-50/80 group-hover:bg-brand-primary/10 flex items-center justify-center mb-2 transition-colors duration-300 shadow-2xs">
                     {getCategoryIcon(cat.icon)}
                   </div>
 
                   {/* Name */}
-                  <h3 className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-brand-primary transition-colors line-clamp-1 leading-snug">
+                  <h3 className="text-[10px] sm:text-xs font-bold text-slate-800 group-hover:text-brand-primary transition-colors line-clamp-2 leading-tight">
                     {cat.name}
                   </h3>
                 </Link>

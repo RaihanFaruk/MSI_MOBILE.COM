@@ -2,12 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
-import { Star, Heart, ShoppingBag, Eye, Plus } from "lucide-react";
+import Link from "next/link";
+import { Star, Heart, ShoppingBag, Eye, Plus, AlertCircle } from "lucide-react";
 import { formatBDT } from "@/utils/formatters";
 import { Product } from "@/types";
 
 export interface ProductCardProps {
   id: string | number;
+  slug?: string;
   name: string;
   brand: string;
   image: string;
@@ -20,6 +22,8 @@ export interface ProductCardProps {
     text: string;
     type: "discount" | "new" | "hot";
   };
+  inStock?: boolean;
+  stock?: number;
   isWishlisted?: boolean;
   onAddToCart: (product: Product) => void;
   onToggleWishlist?: (id: string | number) => void;
@@ -29,6 +33,7 @@ export interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   id,
+  slug,
   name,
   brand,
   image,
@@ -38,14 +43,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   reviewsCount,
   specs,
   badge,
+  inStock,
+  stock,
   isWishlisted = false,
   onAddToCart,
   onToggleWishlist,
   onQuickView,
   stockPercentage,
 }) => {
+  const isOutOfStock = inStock === false || (typeof stock === "number" && stock <= 0);
+
   const productObj: Product = {
     id: String(id),
+    slug,
     name,
     brand,
     category: "tech",
@@ -56,7 +66,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     reviewsCount,
     specs,
     badge,
+    inStock: !isOutOfStock,
+    stock,
   };
+
+  const productUrl = `/products/${slug || id}`;
 
   const getBadgeStyle = () => {
     if (!badge) return "";
@@ -75,16 +89,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     <div className="group relative flex flex-col justify-between bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 overflow-hidden">
       {/* Top Image Container */}
       <div className="relative aspect-square w-full bg-slate-50 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-        {/* Badge (Top Left) */}
-        {badge && (
-          <div className="absolute top-2 left-2 z-10">
+        {/* Badges (Top Left) */}
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 max-w-[62%] pointer-events-none">
+          {isOutOfStock ? (
+            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-md bg-slate-900 text-rose-400 border border-rose-500/40 shadow-sm truncate">
+              <AlertCircle className="w-2.5 h-2.5 shrink-0" />
+              <span className="truncate">Out of Stock</span>
+            </span>
+          ) : badge ? (
             <span
-              className={`inline-block px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-md uppercase tracking-wider shadow-sm ${getBadgeStyle()}`}
+              className={`inline-block px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold rounded-md uppercase tracking-wider shadow-sm truncate ${getBadgeStyle()}`}
             >
               {badge.text}
             </span>
-          </div>
-        )}
+          ) : null}
+        </div>
 
         {/* Wishlist Heart Button (Top Right) */}
         <button
@@ -109,27 +128,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               e.stopPropagation();
               onQuickView(productObj);
             }}
-            className="hidden lg:flex absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 items-center gap-1 bg-slate-900/80 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md"
+            className="hidden lg:flex absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 items-center gap-1 bg-slate-900/80 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5" />
             <span>Quick View</span>
           </button>
         )}
 
-        {/* Product Image */}
-        <div
+        {/* Product Image Link */}
+        <Link
+          href={productUrl}
           className="relative w-full h-full flex items-center justify-center cursor-pointer"
-          onClick={() => onQuickView?.(productObj)}
         >
           <Image
             src={image}
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-contain p-2 group-hover:scale-108 transition-transform duration-500 ease-out"
+            className={`object-contain p-2 group-hover:scale-108 transition-transform duration-500 ease-out ${
+              isOutOfStock ? "grayscale opacity-70" : ""
+            }`}
             loading="lazy"
           />
-        </div>
+        </Link>
       </div>
 
       {/* Product Content Details */}
@@ -141,21 +162,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
 
           {/* Product Name */}
-          <h3
-            onClick={() => onQuickView?.(productObj)}
-            className="font-bold text-xs sm:text-sm text-slate-800 line-clamp-2 hover:text-brand-primary cursor-pointer transition-colors leading-snug mt-0.5"
+          <Link
+            href={productUrl}
+            className="font-bold text-xs sm:text-sm text-slate-800 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] hover:text-brand-primary cursor-pointer transition-colors leading-snug mt-0.5 block"
             title={name}
           >
             {name}
-          </h3>
+          </Link>
 
           {/* Star Rating & Review Count */}
-          <div className="flex items-center gap-1.5 mt-1.5">
+          <div className="flex items-center gap-1.5 mt-1">
             <div className="flex items-center text-amber-400">
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
             </div>
             <span className="text-xs font-bold text-slate-700">{rating.toFixed(1)}</span>
-            <span className="text-[11px] text-slate-400 font-normal">({reviewsCount})</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 font-normal">({reviewsCount})</span>
           </div>
 
           {/* Specs Line */}
@@ -166,7 +187,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
 
           {/* Optional Stock Progress Bar (for flash sale) */}
-          {typeof stockPercentage === "number" && (
+          {typeof stockPercentage === "number" && !isOutOfStock && (
             <div className="mt-2">
               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                 <div
@@ -194,11 +215,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* Add to Cart Button (Desktop: Rounded Cart with Icon, Mobile: Compact + Button) */}
+          {/* Add to Cart Button */}
           <button
-            onClick={() => onAddToCart(productObj)}
-            aria-label={`Add ${name} to Cart`}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white flex items-center justify-center shadow-sm hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200"
+            onClick={() => !isOutOfStock && onAddToCart(productObj)}
+            disabled={isOutOfStock}
+            title={isOutOfStock ? "Out of Stock" : `Add ${name} to Cart`}
+            aria-label={isOutOfStock ? "Out of Stock" : `Add ${name} to Cart`}
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ${
+              isOutOfStock
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                : "bg-brand-primary hover:bg-brand-primary-dark active:scale-95 text-white shadow-sm hover:shadow-md hover:shadow-blue-500/20 cursor-pointer"
+            }`}
           >
             {/* Desktop icon */}
             <ShoppingBag className="w-4 h-4 hidden sm:block" />

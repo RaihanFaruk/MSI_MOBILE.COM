@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard,
   Package,
@@ -20,24 +21,146 @@ import {
   ShieldCheck,
   Tag,
   Star,
+  Bell,
+  CheckCircle2,
+  AlertTriangle,
+  UserCheck,
 } from "lucide-react";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+export const LOW_STOCK_THRESHOLD = 5;
+
+// ─── Toast Type ───────────────────────────────────────────────────────────────
+interface ToastItem {
+  id: number;
+  text: string;
+  subtext?: string;
+  type: "success" | "info" | "warning";
+}
+
+// ─── Main Layout ──────────────────────────────────────────────────────────────
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, signOut } = useAuth();
   const pathname = usePathname();
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [lowStockCount, setLowStockCount] = useState<number>(0);
+  const [unreadOrderCount, setUnreadOrderCount] = useState<number>(0);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastIdRef = useRef(0);
+
+  // ─── Toast helpers ─────────────────────────────────────────────────────────
+  const addToast = useCallback((text: string, subtext?: string, type: ToastItem["type"] = "info") => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, text, subtext, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5500);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // ─── Low Stock Fetch ───────────────────────────────────────────────────────
+  useEffect(() => {
+    async function fetchLowStock() {
+      try {
+        const { count } = await supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .lt("stock", LOW_STOCK_THRESHOLD);
+
+        if (count !== null && count !== undefined) {
+          setLowStockCount(count);
+        }
+      } catch (e) {
+        console.log("Low stock count check note:", e);
+      }
+    }
+
+    if (user && profile?.role === "admin") {
+      fetchLowStock();
+    }
+  }, [user, profile]);
+
+  // ─── Supabase Realtime — new orders ───────────────────────────────────────
+  useEffect(() => {
+    if (!user || profile?.role !== "admin") return;
+
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          const order = payload.new as {
+            id?: string | number;
+            order_number?: string;
+            customer_name?: string;
+            total_amount?: number;
+          };
+
+          const customerName = order.customer_name || "A customer";
+          const orderIdentifier = order.order_number || `#${order.id}`;
+          const amount = order.total_amount
+            ? `৳${Number(order.total_amount).toLocaleString("en-BD")}`
+            : "";
+
+          // Show toast
+          addToast(
+            `🛒 New Order Received!`,
+            `${customerName} placed an order${amount ? ` for ${amount}` : ""}. (${orderIdentifier})`,
+            "success"
+          );
+
+          // Only increment unread badge if not already on /admin/orders
+          if (!window.location.pathname.startsWith("/admin/orders")) {
+            setUnreadOrderCount((prev) => prev + 1);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log("[Admin] Realtime: Listening for new orders...");
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, profile, addToast]);
+
+  // ─── Reset unread count when navigating to /admin/orders ──────────────────
+  useEffect(() => {
+    if (pathname.startsWith("/admin/orders")) {
+      setUnreadOrderCount(0);
+    }
+  }, [pathname]);
+
+  // ─── Nav Items ─────────────────────────────────────────────────────────────
   const NAV_ITEMS = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { label: "Products", href: "/admin/products", icon: Package },
+    {
+      label: "Products",
+      href: "/admin/products",
+      icon: Package,
+      badge: lowStockCount > 0 ? lowStockCount : undefined,
+      badgeColor: "amber" as const,
+    },
     { label: "Categories", href: "/admin/categories", icon: Layers },
     { label: "Coupons", href: "/admin/coupons", icon: Tag },
-    { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
+    {
+      label: "Orders",
+      href: "/admin/orders",
+      icon: ShoppingCart,
+      badge: unreadOrderCount > 0 ? unreadOrderCount : undefined,
+      badgeColor: "rose" as const,
+    },
+    { label: "Customers", href: "/admin/customers", icon: UserCheck },
     { label: "Reviews", href: "/admin/reviews", icon: Star },
     { label: "Users", href: "/admin/users", icon: Users },
   ];
 
-  // 1. Loading State
+  // ─── Loading State ─────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white space-y-4">
@@ -47,7 +170,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // 2. Unauthorized State (Not logged in or not admin)
+  // ─── Unauthorized State ────────────────────────────────────────────────────
   if (!user || profile?.role !== "admin") {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 relative overflow-hidden tech-circuit-pattern">
@@ -88,7 +211,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onClick={() => signOut()}
                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all"
               >
-                Sign Out & Switch Account
+                Sign Out &amp; Switch Account
               </button>
             )}
 
@@ -104,7 +227,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // 3. Authorized Admin Layout
+  // ─── Authorized Admin Layout ───────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex">
       {/* Mobile Sidebar Overlay */}
@@ -115,9 +238,69 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
+      {/* ── Toast Notifications ── */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-xs max-w-sm animate-in slide-in-from-right fade-in duration-300 ${
+              toast.type === "success"
+                ? "bg-slate-900 border-emerald-500/40 shadow-emerald-900/20"
+                : toast.type === "warning"
+                ? "bg-slate-900 border-amber-500/40 shadow-amber-900/20"
+                : "bg-slate-900 border-blue-500/40 shadow-blue-900/20"
+            }`}
+          >
+            {/* Icon */}
+            <div
+              className={`shrink-0 mt-0.5 ${
+                toast.type === "success"
+                  ? "text-emerald-400"
+                  : toast.type === "warning"
+                  ? "text-amber-400"
+                  : "text-blue-400"
+              }`}
+            >
+              {toast.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : toast.type === "warning" ? (
+                <AlertTriangle className="w-4 h-4" />
+              ) : (
+                <Bell className="w-4 h-4" />
+              )}
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-white">{toast.text}</p>
+              {toast.subtext && (
+                <p className="text-slate-400 text-[11px] mt-0.5 leading-relaxed">{toast.subtext}</p>
+              )}
+              {/* Link to orders page for order toasts */}
+              {toast.type === "success" && toast.text.includes("Order") && (
+                <Link
+                  href="/admin/orders"
+                  className="inline-block mt-1.5 text-emerald-400 font-bold text-[11px] hover:underline"
+                >
+                  View Orders →
+                </Link>
+              )}
+            </div>
+
+            {/* Dismiss */}
+            <button
+              onClick={() => dismissToast(toast.id)}
+              className="shrink-0 text-slate-500 hover:text-slate-300 cursor-pointer transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 ${
+        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 print:hidden ${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -155,19 +338,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   ? pathname === "/admin"
                   : pathname.startsWith(item.href);
 
+              const badgeColorClass =
+                item.badgeColor === "rose"
+                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  : "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? "bg-brand-primary text-white shadow-md shadow-blue-600/30"
                       : "text-slate-400 hover:text-white hover:bg-slate-800/70"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${badgeColorClass} ${
+                        item.badgeColor === "rose" ? "animate-pulse" : ""
+                      }`}
+                    >
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -221,9 +420,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Admin Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden print:overflow-visible print:bg-white print:text-black">
         {/* Top Navbar */}
-        <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -243,6 +442,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Unread orders bell in top navbar */}
+            {unreadOrderCount > 0 && (
+              <Link
+                href="/admin/orders"
+                className="relative p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 transition-colors"
+                title={`${unreadOrderCount} new order${unreadOrderCount > 1 ? "s" : ""}`}
+              >
+                <Bell className="w-4 h-4" />
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  {unreadOrderCount > 9 ? "9+" : unreadOrderCount}
+                </span>
+              </Link>
+            )}
+
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
               <span>System Online</span>
@@ -251,7 +464,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-8 flex-1 max-w-7xl w-full mx-auto">
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 max-w-7xl w-full mx-auto print:p-0 print:m-0 print:max-w-none">
           {children}
         </main>
       </div>

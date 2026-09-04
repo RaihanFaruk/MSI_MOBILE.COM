@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { formatBDT } from "@/utils/formatters";
 import {
@@ -18,6 +20,11 @@ import {
   Mail,
   MapPin,
   Save,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Printer,
 } from "lucide-react";
 
 interface OrderItem {
@@ -30,6 +37,7 @@ interface OrderItem {
 
 interface OrderRow {
   id: string | number;
+  order_number?: string;
   user_id?: string;
   customer_name?: string;
   customer_email?: string;
@@ -39,20 +47,58 @@ interface OrderRow {
   total_amount: number;
   payment_method?: string;
   payment_status?: string;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | string;
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "out_for_delivery"
+    | "delivered"
+    | "cancelled"
+    | "returned"
+    | string;
   created_at: string;
 }
 
-export default function AdminOrdersPage() {
+const PAGE_SIZE = 25;
+
+function AdminOrdersContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Read URL search params
+  const initialStatus = searchParams.get("status") || "all";
+  const initialSearch = searchParams.get("q") || "";
+  const initialFrom = searchParams.get("from") || "";
+  const initialTo = searchParams.get("to") || "";
+  const initialPage = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Filters State
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [fromDate, setFromDate] = useState(initialFrom);
+  const [toDate, setToDate] = useState(initialTo);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+  // Modals & Single Status Update
   const [selectedOrder, setSelectedOrder] = useState<OrderRow | null>(null);
   const [editStatusOrder, setEditStatusOrder] = useState<OrderRow | null>(null);
   const [newStatus, setNewStatus] = useState<string>("pending");
   const [newPaymentStatus, setNewPaymentStatus] = useState<string>("unpaid");
   const [statusLoading, setStatusLoading] = useState(false);
+
+  // Bulk Selection States
+  const [selectedOrderIds, setSelectedOrderIds] = useState<(string | number)[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>("confirmed");
+  const [bulkPaymentStatus, setBulkPaymentStatus] = useState<string>("unpaid");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Toast
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const showToast = (text: string, type: "success" | "error" = "success") => {
@@ -60,30 +106,209 @@ export default function AdminOrdersPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Sync state to URL params
+  const updateUrlParams = useCallback(
+    (params: { q?: string; status?: string; from?: string; to?: string; page?: number }) => {
+      const sp = new URLSearchParams();
+      const q = params.q !== undefined ? params.q : searchQuery;
+      const status = params.status !== undefined ? params.status : statusFilter;
+      const from = params.from !== undefined ? params.from : fromDate;
+      const to = params.to !== undefined ? params.to : toDate;
+      const page = params.page !== undefined ? params.page : currentPage;
+
+      if (q.trim()) sp.set("q", q.trim());
+      if (status && status !== "all") sp.set("status", status);
+      if (from) sp.set("from", from);
+      if (to) sp.set("to", to);
+      if (page > 1) sp.set("page", String(page));
+
+      const queryStr = sp.toString();
+      router.replace(`${pathname}${queryStr ? `?${queryStr}` : ""}`, { scroll: false });
+    },
+    [router, pathname, searchQuery, statusFilter, fromDate, toDate, currentPage]
+  );
+
+  // Direct Supabase Server Query with Filters & Pagination
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact" });
+
+      // 1. Status filter (all 8 enum values)
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      // 2. Date Range filters
+      if (fromDate) {
+        const startIso = new Date(`${fromDate}T00:00:00.000Z`).toISOString();
+        query = query.gte("created_at", startIso);
+      }
+      if (toDate) {
+        const endIso = new Date(`${toDate}T23:59:59.999Z`).toISOString();
+        query = query.lte("created_at", endIso);
+      }
+
+      // 3. Search query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim();
+        const isNum = !isNaN(Number(q)) && !q.includes("-");
+        if (isNum) {
+          query = query.or(
+            `order_number.ilike.%${q}%,customer_name.ilike.%${q}%,customer_phone.ilike.%${q}%,customer_email.ilike.%${q}%,id.eq.${q}`
+          );
+        } else {
+          query = query.or(
+            `order_number.ilike.%${q}%,customer_name.ilike.%${q}%,customer_phone.ilike.%${q}%,customer_email.ilike.%${q}%`
+          );
+        }
+      }
+
+      // 4. Pagination
+      const fromIndex = (currentPage - 1) * PAGE_SIZE;
+      const toIndex = fromIndex + PAGE_SIZE - 1;
+
+      query = query
+        .order("created_at", { ascending: false })
+        .range(fromIndex, toIndex);
+
+      const { data, count, error } = await query;
 
       if (error && error.code !== "PGRST116") {
         throw error;
       }
+
       setOrders(data || []);
+      setTotalCount(count || 0);
     } catch (err: unknown) {
-      console.error("Orders fetch error:", err);
+      console.error("Orders server fetch error:", err);
       showToast("Failed to load customer orders. Please try again.", "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter, fromDate, toDate, searchQuery, currentPage]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
+  // Debounced search trigger
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      updateUrlParams({ q: searchQuery, page: 1 });
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery, updateUrlParams]);
+
+  // Handle Filter Changes
+  const handleStatusFilterChange = (newStatusVal: string) => {
+    setStatusFilter(newStatusVal);
+    setCurrentPage(1);
+    updateUrlParams({ status: newStatusVal, page: 1 });
+  };
+
+  const handleFromDateChange = (date: string) => {
+    setFromDate(date);
+    setCurrentPage(1);
+    updateUrlParams({ from: date, page: 1 });
+  };
+
+  const handleToDateChange = (date: string) => {
+    setToDate(date);
+    setCurrentPage(1);
+    updateUrlParams({ to: date, page: 1 });
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setFromDate("");
+    setToDate("");
+    setCurrentPage(1);
+    router.replace(pathname, { scroll: false });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    updateUrlParams({ page: newPage });
+  };
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
+
+  // Bulk Selection Handlers
+  const allFilteredSelected =
+    orders.length > 0 && orders.every((o) => selectedOrderIds.includes(o.id));
+
+  const handleToggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const currentIds = new Set(orders.map((o) => o.id));
+      setSelectedOrderIds((prev) => prev.filter((id) => !currentIds.has(id)));
+    } else {
+      const currentIds = orders.map((o) => o.id);
+      setSelectedOrderIds((prev) => Array.from(new Set([...prev, ...currentIds])));
+    }
+  };
+
+  const handleToggleSelectOne = (id: string | number) => {
+    setSelectedOrderIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedOrderIds.length === 0) return;
+    setBulkLoading(true);
+
+    // Optimistic UI update
+    const previousOrders = [...orders];
+    setOrders((prev) =>
+      prev.map((o) =>
+        selectedOrderIds.includes(o.id)
+          ? { ...o, status: bulkStatus, payment_status: bulkPaymentStatus }
+          : o
+      )
+    );
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const res = await fetch("/api/admin/orders/bulk-update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({
+          orderIds: selectedOrderIds,
+          status: bulkStatus,
+          payment_status: bulkPaymentStatus,
+        }),
+      });
+
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.message || "Bulk status update failed.");
+      }
+
+      showToast(`Successfully updated ${selectedOrderIds.length} order(s) to ${bulkStatus}.`);
+      setSelectedOrderIds([]);
+      fetchOrders();
+    } catch (err: unknown) {
+      console.error("Bulk update error:", err);
+      // Revert optimistic update
+      setOrders(previousOrders);
+      const msg = err instanceof Error ? err.message : "Failed to update orders in batch.";
+      showToast(msg, "error");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  // Single Order Status Update
   const handleOpenStatusModal = (order: OrderRow) => {
     setEditStatusOrder(order);
     setNewStatus(order.status || "pending");
@@ -96,12 +321,10 @@ export default function AdminOrdersPage() {
 
     setStatusLoading(true);
     try {
-      // 1. Get current admin session token
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // 2. Call server-side Admin API route with Bearer token
       const res = await fetch(`/api/admin/orders/${editStatusOrder.id}`, {
         method: "PATCH",
         headers: {
@@ -139,33 +362,33 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter((o) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      String(o.id).toLowerCase().includes(q) ||
-      o.customer_name?.toLowerCase().includes(q) ||
-      o.customer_email?.toLowerCase().includes(q) ||
-      o.customer_phone?.toLowerCase().includes(q);
-
-    const matchesStatus = statusFilter === "all" || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "delivered":
         return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
       case "shipped":
         return "bg-sky-500/15 text-sky-400 border-sky-500/30";
+      case "out_for_delivery":
+        return "bg-purple-500/15 text-purple-400 border-purple-500/30";
+      case "confirmed":
+        return "bg-teal-500/15 text-teal-400 border-teal-500/30";
       case "processing":
         return "bg-blue-500/15 text-blue-400 border-blue-500/30";
       case "cancelled":
         return "bg-rose-500/15 text-rose-400 border-rose-500/30";
+      case "returned":
+        return "bg-orange-500/15 text-orange-400 border-orange-500/30";
       case "pending":
       default:
         return "bg-amber-500/15 text-amber-400 border-amber-500/30";
     }
   };
+
+  const isFilterActive =
+    searchQuery.trim() !== "" ||
+    statusFilter !== "all" ||
+    fromDate !== "" ||
+    toDate !== "";
 
   return (
     <div className="space-y-6">
@@ -202,7 +425,7 @@ export default function AdminOrdersPage() {
           <button
             onClick={fetchOrders}
             disabled={loading}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
             title="Refresh Orders"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -210,37 +433,147 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Search & Status Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-72">
+      {/* Bulk Action Bar (Visible when ≥1 order is selected) */}
+      {selectedOrderIds.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-950/90 to-slate-900 border border-blue-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="font-extrabold text-xs text-blue-400 bg-blue-500/20 px-3 py-1.5 rounded-xl border border-blue-500/30">
+              {selectedOrderIds.length} Order{selectedOrderIds.length > 1 ? "s" : ""} Selected
+            </span>
+            <span className="text-xs text-slate-300 hidden md:inline">
+              Choose bulk order updates:
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value)}
+              className="px-3.5 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="out_for_delivery">Out for Delivery</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="returned">Returned</option>
+            </select>
+
+            <select
+              value={bulkPaymentStatus}
+              onChange={(e) => setBulkPaymentStatus(e.target.value)}
+              className="px-3.5 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+            >
+              <option value="unpaid">Payment Unpaid</option>
+              <option value="paid">Payment Paid</option>
+              <option value="refunded">Payment Refunded</option>
+            </select>
+
+            <button
+              onClick={handleBulkUpdate}
+              disabled={bulkLoading}
+              className="bg-brand-primary hover:bg-brand-primary-dark text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 shadow-md"
+            >
+              {bulkLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Apply Updates</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => setSelectedOrderIds([])}
+              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
+              title="Deselect All"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Filter Bar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Search Box */}
+          <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Order ID, Name, Email..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-950/80 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none"
+              placeholder="Search by Order ID, Name, Phone..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none"
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none"
-          >
-            <option value="all">All Order Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+          {/* Status Dropdown (8 real enum values) */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => handleStatusFilterChange(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Order Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="out_for_delivery">Out for Delivery</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="returned">Returned</option>
+            </select>
+          </div>
+
+          {/* From Date */}
+          <div className="relative">
+            <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => handleFromDateChange(e.target.value)}
+              title="From Date"
+              className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none [color-scheme:dark]"
+            />
+          </div>
+
+          {/* To Date */}
+          <div className="relative">
+            <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => handleToDateChange(e.target.value)}
+              title="To Date"
+              className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs text-white focus:outline-none [color-scheme:dark]"
+            />
+          </div>
         </div>
 
-        <div className="text-xs text-slate-400 font-semibold">
-          Showing <strong className="text-white">{filteredOrders.length}</strong> of{" "}
-          <strong className="text-white">{orders.length}</strong> orders
+        {/* Filter Stats & Reset */}
+        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+          <div className="text-slate-400 font-medium">
+            Found <strong className="text-white">{totalCount}</strong> matching order{totalCount !== 1 ? "s" : ""}
+          </div>
+
+          {isFilterActive && (
+            <button
+              onClick={handleResetFilters}
+              className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold cursor-pointer transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Filters</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -249,16 +582,18 @@ export default function AdminOrdersPage() {
         {loading ? (
           <div className="text-center py-16 text-slate-400 text-xs space-y-2">
             <Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-primary" />
-            <p>Loading orders from database...</p>
+            <p>Fetching orders from database...</p>
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="text-center py-16 space-y-3 px-4">
             <ShoppingCart className="w-12 h-12 text-slate-700 mx-auto" />
             <h3 className="text-sm font-bold text-slate-300">
-              {searchQuery || statusFilter !== "all" ? "No matching orders found" : "No orders in database yet"}
+              {isFilterActive ? "No matching orders found" : "No orders in database yet"}
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              When customers complete checkouts through SSLCOMMERZ or Cash on Delivery, their orders will appear here automatically.
+              {isFilterActive
+                ? "Try adjusting your search query, status dropdown, or date filters."
+                : "When customers complete checkouts, their orders will appear here automatically."}
             </p>
           </div>
         ) : (
@@ -266,6 +601,15 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left text-xs">
               <thead className="text-[11px] uppercase tracking-wider text-slate-400 bg-slate-950/60 border-b border-slate-800">
                 <tr>
+                  <th className="py-3.5 px-4 w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all orders"
+                      checked={allFilteredSelected}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-brand-primary accent-blue-600 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3.5 px-4">Order ID</th>
                   <th className="py-3.5 px-4">Customer</th>
                   <th className="py-3.5 px-4">Amount</th>
@@ -276,11 +620,29 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-800/40 transition-colors">
+                {orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className={`transition-colors ${
+                      selectedOrderIds.includes(order.id)
+                        ? "bg-blue-950/30 hover:bg-blue-950/40"
+                        : "hover:bg-slate-800/40"
+                    }`}
+                  >
+                    {/* Checkbox */}
+                    <td className="py-3.5 px-4 w-10">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select order #${order.id}`}
+                        checked={selectedOrderIds.includes(order.id)}
+                        onChange={() => handleToggleSelectOne(order.id)}
+                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-brand-primary accent-blue-600 cursor-pointer"
+                      />
+                    </td>
+
                     {/* ID */}
-                    <td className="py-3.5 px-4 font-mono font-bold text-white">
-                      #{order.id}
+                    <td className="py-3.5 px-4 font-mono font-bold text-white text-xs">
+                      {order.order_number || `#${order.id}`}
                     </td>
 
                     {/* Customer */}
@@ -339,16 +701,24 @@ export default function AdminOrdersPage() {
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/orders/${order.id}/invoice`}
+                          target="_blank"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          title="Print Invoice"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </Link>
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
                           title="View Order Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenStatusModal(order)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
                           title="Update Status"
                         >
                           <Truck className="w-3.5 h-3.5" />
@@ -359,6 +729,44 @@ export default function AdminOrdersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Server Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-slate-400">
+              Showing{" "}
+              <strong className="text-white">{(currentPage - 1) * PAGE_SIZE + 1}</strong> to{" "}
+              <strong className="text-white">
+                {Math.min(currentPage * PAGE_SIZE, totalCount)}
+              </strong>{" "}
+              of <strong className="text-white">{totalCount}</strong> orders
+            </span>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1 || loading}
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <span className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages || loading}
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -372,7 +780,10 @@ export default function AdminOrdersPage() {
                 <ShoppingCart className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-base font-bold text-white">Order Details #{selectedOrder.id}</h3>
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-white">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -415,7 +826,10 @@ export default function AdminOrdersPage() {
               {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
                 <div className="space-y-2">
                   {selectedOrder.items.map((item: OrderItem, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs"
+                    >
                       <div>
                         <p className="font-bold text-white">{item.name || item.title || "Product Item"}</p>
                         <span className="text-[10px] text-slate-400">Qty: {item.quantity || 1}</span>
@@ -437,12 +851,22 @@ export default function AdminOrdersPage() {
               <span className="text-blue-400 text-base">{formatBDT(selectedOrder.total_amount)}</span>
             </div>
 
-            <button
-              onClick={() => setSelectedOrder(null)}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs"
-            >
-              Close
-            </button>
+            <div className="flex items-center gap-3 pt-2">
+              <Link
+                href={`/admin/orders/${selectedOrder.id}/invoice`}
+                target="_blank"
+                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-md"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Invoice</span>
+              </Link>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -456,7 +880,10 @@ export default function AdminOrdersPage() {
                 <Truck className="w-4 h-4 text-brand-primary" />
                 <span>Update Order #{editStatusOrder.id}</span>
               </h3>
-              <button onClick={() => setEditStatusOrder(null)} className="text-slate-400 hover:text-white">
+              <button
+                onClick={() => setEditStatusOrder(null)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -469,13 +896,16 @@ export default function AdminOrdersPage() {
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs sm:text-sm text-white focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs sm:text-sm text-white focus:outline-none cursor-pointer"
                 >
-                  <option value="pending">Pending (Awaiting Verification)</option>
-                  <option value="processing">Processing (Packaging in Warehouse)</option>
-                  <option value="shipped">Shipped (Dispatched with Courier)</option>
-                  <option value="delivered">Delivered (Completed)</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="out_for_delivery">Out for Delivery</option>
+                  <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
+                  <option value="returned">Returned</option>
                 </select>
               </div>
 
@@ -486,10 +916,10 @@ export default function AdminOrdersPage() {
                 <select
                   value={newPaymentStatus}
                   onChange={(e) => setNewPaymentStatus(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs sm:text-sm text-white focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 focus:border-brand-primary rounded-xl text-xs sm:text-sm text-white focus:outline-none cursor-pointer"
                 >
-                  <option value="unpaid">Unpaid (Awaiting Cash or Gateway)</option>
-                  <option value="paid">Paid (Verified in bKash/Nagad/SSLCOMMERZ)</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="paid">Paid</option>
                   <option value="refunded">Refunded</option>
                 </select>
               </div>
@@ -498,14 +928,14 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => setEditStatusOrder(null)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={statusLoading}
-                  className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   {statusLoading ? (
                     <>
@@ -525,5 +955,20 @@ export default function AdminOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-center py-20 text-slate-400 text-xs flex flex-col items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
+          <span>Loading orders dashboard...</span>
+        </div>
+      }
+    >
+      <AdminOrdersContent />
+    </Suspense>
   );
 }

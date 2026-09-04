@@ -31,19 +31,31 @@ export const NewArrivals: React.FC = () => {
               ? p.images[0]
               : "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80";
 
+            const regularPrice = Number(p.price) || 0;
+            const discountPrice = p.discount_price ? Number(p.discount_price) : null;
+            const hasValidDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+            const sellingPrice = hasValidDiscount ? discountPrice : regularPrice;
+            const originalPrice = hasValidDiscount ? regularPrice : undefined;
+            const discountPct = hasValidDiscount ? Math.round(((regularPrice - discountPrice) / regularPrice) * 100) : null;
+            const stock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+
             return {
               id: String(p.id),
+              slug: p.slug,
               name: p.name,
               brand: p.brand,
               category: p.categories?.name || "Smartphones",
               image: firstImg,
-              price: Number(p.price),
-              originalPrice: p.discount_price ? Number(p.discount_price) : undefined,
+              price: sellingPrice,
+              originalPrice,
               rating: p.rating ? Number(p.rating) : 4.9,
               reviewsCount: p.reviews_count || 25,
               specs: p.specs || undefined,
-              inStock: (p.stock || 0) > 0,
-              badge: { text: "NEW", type: "new" },
+              inStock: stock > 0,
+              stock,
+              badge: hasValidDiscount
+                ? { text: `${discountPct}% OFF`, type: "discount" }
+                : { text: "NEW", type: "new" },
               description: p.description,
             };
           });
@@ -66,21 +78,21 @@ export const NewArrivals: React.FC = () => {
     <section id="new-arrivals" className="py-8 sm:py-12 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-emerald-100/80 text-emerald-600">
-              <Sparkles className="w-5 h-5" />
+        <div className="flex items-center justify-between mb-5 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-emerald-100/80 text-emerald-600">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-lg sm:text-2xl font-extrabold text-navy-dark tracking-tight">
                   New Arrivals
                 </h2>
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-600 text-white rounded-md uppercase">
+                <span className="px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-emerald-600 text-white rounded-md uppercase">
                   Fresh Stock
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500">
+              <p className="text-[11px] sm:text-sm text-slate-500">
                 Just landed in our inventory with official warranty
               </p>
             </div>
@@ -88,10 +100,11 @@ export const NewArrivals: React.FC = () => {
 
           <Link
             href="/products?sort=newest"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
+            className="flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors shrink-0"
           >
-            <span>View New</span>
-            <ArrowRight className="w-4 h-4" />
+            <span className="hidden xs:inline">View New</span>
+            <span className="xs:hidden">All New</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -112,6 +125,7 @@ export const NewArrivals: React.FC = () => {
               <ProductCard
                 key={product.id}
                 id={product.id}
+                slug={product.slug}
                 name={product.name}
                 brand={product.brand}
                 image={product.image}
@@ -121,6 +135,8 @@ export const NewArrivals: React.FC = () => {
                 reviewsCount={product.reviewsCount}
                 specs={product.specs}
                 badge={product.badge}
+                inStock={product.inStock}
+                stock={product.stock}
                 isWishlisted={isInWishlist(product.id)}
                 onAddToCart={() => addToCart(product)}
                 onToggleWishlist={() => toggleWishlist(product.id)}
